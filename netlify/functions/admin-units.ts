@@ -14,13 +14,29 @@ export const handler: Handler = async (event) => {
     const supabase = getSupabaseAdmin();
     const params = event.queryStringParameters ?? {};
     const search = (params.search ?? "").trim();
-    let query = supabase.from("vw_admin_unidades").select("*").order("nome");
+    let query = supabase.from("unidades").select("id, nome, nome_normalizado, ativo, created_at, updated_at").order("nome");
     if (search) {
       query = query.ilike("nome", `%${search}%`);
     }
-    const { data, error } = await query;
-    if (error) throw error;
-    return ok({ rows: data ?? [] });
+    const [{ data: units, error: unitsError }, { data: registrations, error: registrationsError }] = await Promise.all([
+      query,
+      supabase.from("cadastros").select("unidade_id"),
+    ]);
+
+    if (unitsError) throw unitsError;
+    if (registrationsError) throw registrationsError;
+
+    const usageByUnit = new Map<string, number>();
+    for (const registration of registrations ?? []) {
+      usageByUnit.set(registration.unidade_id, (usageByUnit.get(registration.unidade_id) ?? 0) + 1);
+    }
+
+    return ok({
+      rows: (units ?? []).map((unit) => ({
+        ...unit,
+        usage_count: usageByUnit.get(unit.id) ?? 0,
+      })),
+    });
   } catch (error) {
     return serverError(error instanceof Error ? error.message : undefined);
   }

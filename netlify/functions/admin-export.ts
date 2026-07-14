@@ -4,6 +4,7 @@ import { assertAdmin } from "./_shared/adminAuth";
 import { fillExportWorkbook } from "./_shared/excel";
 import { badRequest, serverError, unauthorized } from "./_shared/responses";
 import { getSupabaseAdmin } from "./_shared/supabaseAdmin";
+import { listAdminRegistrations } from "./_shared/registrations";
 
 export const handler: Handler = async (event) => {
   try {
@@ -22,20 +23,11 @@ export const handler: Handler = async (event) => {
     const search = (params.search ?? "").trim();
     const status = (params.status ?? "").trim();
 
-    let query = supabase.from("vw_admin_registros").select("*").order("cadastro_created_at", { ascending: false });
-    if (status) {
-      query = query.eq("status", status);
-    }
-    if (search) {
-      query = query.or(`unidade_nome.ilike.%${search}%,equipamento_nome.ilike.%${search}%,numero_patrimonio_text.ilike.%${search}%`);
-    }
-
-    const [{ data: rows, error: rowsError }, { data: config, error: configError }] = await Promise.all([
-      query,
+    const [{ rows }, { data: config, error: configError }] = await Promise.all([
+      listAdminRegistrations(supabase, { search, status }),
       supabase.from("configuracoes").select("valor").eq("chave", TEMPLATE_CONFIG_KEY).maybeSingle(),
     ]);
 
-    if (rowsError) throw rowsError;
     if (configError) throw configError;
 
     const metadata = (config?.valor ?? null) as { path?: string; filename?: string; sheetName?: string } | null;
@@ -46,7 +38,7 @@ export const handler: Handler = async (event) => {
       templateBuffer = Buffer.from(await file.arrayBuffer());
     }
 
-    const buffer = fillExportWorkbook(templateBuffer, rows ?? [], metadata as never);
+    const buffer = fillExportWorkbook(templateBuffer, rows, metadata as never);
     const stamp = new Date()
       .toISOString()
       .replace(/[:T]/g, "-")

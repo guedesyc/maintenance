@@ -2,6 +2,7 @@ import type { Handler } from "@netlify/functions";
 import { assertAdmin } from "./_shared/adminAuth";
 import { getSupabaseAdmin } from "./_shared/supabaseAdmin";
 import { ok, serverError, unauthorized } from "./_shared/responses";
+import { listAdminRegistrations } from "./_shared/registrations";
 
 export const handler: Handler = async (event) => {
   try {
@@ -19,11 +20,7 @@ export const handler: Handler = async (event) => {
       supabase.from("unidades").select("id", { count: "exact", head: true }).eq("ativo", true),
       supabase.from("equipamentos_catalogo").select("id", { count: "exact", head: true }).eq("ativo", true),
       supabase.from("historico_importacoes").select("id", { count: "exact", head: true }),
-      supabase
-        .from("vw_admin_registros")
-        .select("*")
-        .order("cadastro_created_at", { ascending: false })
-        .limit(8),
+      listAdminRegistrations(supabase, { limit: 8 }),
     ]);
 
     return ok({
@@ -32,7 +29,7 @@ export const handler: Handler = async (event) => {
       unidadesAtivas: unidades.count ?? 0,
       equipamentosAtivos: equipamentos.count ?? 0,
       totalImportacoes: importacoes.count ?? 0,
-      ultimosCadastros: ultimos.data ?? [],
+      ultimosCadastros: ultimos.rows,
     });
   } catch (error) {
     return serverError(error instanceof Error ? error.message : undefined);

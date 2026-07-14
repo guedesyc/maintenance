@@ -2,6 +2,7 @@ import type { Handler } from "@netlify/functions";
 import { assertAdmin } from "./_shared/adminAuth";
 import { getSupabaseAdmin } from "./_shared/supabaseAdmin";
 import { ok, serverError, unauthorized } from "./_shared/responses";
+import { listAdminRegistrations } from "./_shared/registrations";
 
 export const handler: Handler = async (event) => {
   try {
@@ -18,26 +19,11 @@ export const handler: Handler = async (event) => {
     const search = (params.search ?? "").trim();
     const status = (params.status ?? "").trim();
 
-    let query = supabase
-      .from("vw_admin_registros")
-      .select("*", { count: "exact" })
-      .order("cadastro_created_at", { ascending: false })
-      .range((page - 1) * pageSize, page * pageSize - 1);
-
-    if (status) {
-      query = query.eq("status", status);
-    }
-
-    if (search) {
-      query = query.or(`unidade_nome.ilike.%${search}%,equipamento_nome.ilike.%${search}%,numero_patrimonio_text.ilike.%${search}%`);
-    }
-
-    const { data, error, count } = await query;
-    if (error) throw error;
+    const { rows, total } = await listAdminRegistrations(supabase, { page, pageSize, search, status });
 
     return ok({
-      rows: data ?? [],
-      total: count ?? 0,
+      rows,
+      total,
       page,
       pageSize,
     });
