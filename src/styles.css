@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #132218;
+  background: #f6f1e8;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-image: radial-gradient(circle at top, rgba(134, 201, 156, 0.28), transparent 35%),
+    linear-gradient(135deg, #f6f1e8 0%, #ffffff 50%, #eef7f0 100%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-white;
+}
+
+.panel {
+  @apply rounded-3xl border border-brand-100 bg-white/90 shadow-soft backdrop-blur;
+}
+
+.input-base {
+  @apply w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-ink shadow-sm transition focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 disabled:bg-stone-100 disabled:text-stone-500;
+}
+
+.button-primary {
+  @apply inline-flex items-center justify-center rounded-2xl bg-brand-600 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300;
+}
+
+.button-secondary {
+  @apply inline-flex items-center justify-center rounded-2xl border border-stone-200 bg-white px-4 py-2.5 font-medium text-stone-700 transition hover:border-brand-200 hover:text-brand-700;
+}
