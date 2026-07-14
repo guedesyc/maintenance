@@ -328,6 +328,46 @@ as $$
   select prefix_value || unit_number || '/' || lpad(patrimonio_number::text, 6, '0');
 $$;
 
+create or replace function public.format_customer_patrimonio(unit_name text, raw_patrimonio text)
+returns text
+language plpgsql
+immutable
+as $$
+declare
+  unit_number text := public.extract_unit_number(unit_name);
+  clean_value text := trim(coalesce(raw_patrimonio, ''));
+  digits_value text;
+begin
+  if unit_number is null then
+    raise exception 'Nao foi possivel identificar o numero da unidade: %', unit_name;
+  end if;
+
+  if clean_value = '' then
+    raise exception 'Informe o patrimonio de todos os equipamentos do cliente.';
+  end if;
+
+  if public.normalize_text(clean_value) like 'CL%/%' then
+    return clean_value;
+  end if;
+
+  digits_value := regexp_replace(clean_value, '\D', '', 'g');
+
+  if digits_value <> '' then
+    clean_value := lpad(digits_value, 6, '0');
+  end if;
+
+  return 'CL' || unit_number || '/' || clean_value;
+end;
+$$;
+
+update public.patrimonios p
+set patrimonio_codigo = public.format_customer_patrimonio(c.unidade_nome, p.patrimonio_codigo)
+from public.cadastros c
+where p.cadastro_id = c.id
+  and p.equipamento_cliente = true
+  and p.patrimonio_codigo is not null
+  and public.normalize_text(p.patrimonio_codigo) not like 'CL%/%';
+
 create or replace function public.generate_pending_patrimonios()
 returns jsonb
 language plpgsql
@@ -506,6 +546,10 @@ begin
 
     if item_is_customer and customer_patrimonio is null then
       raise exception 'Informe o patrimonio de todos os equipamentos do cliente.';
+    end if;
+
+    if item_is_customer then
+      customer_patrimonio := public.format_customer_patrimonio(current_unit.nome, customer_patrimonio);
     end if;
 
     if equipment_item ? 'equipamento_id' then

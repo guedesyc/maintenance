@@ -79,7 +79,7 @@ export default function EquipmentRow({
             className="input-base"
             value={item.customerPatrimonio}
             disabled={disabled}
-            placeholder="Digite o patrimonio"
+            placeholder="Digite a numeracao"
             onChange={(event) => onCustomerPatrimonioChange(event.target.value)}
           />
         ) : (

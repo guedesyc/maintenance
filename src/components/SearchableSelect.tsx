@@ -60,6 +60,7 @@ export default function SearchableSelect<T extends BaseItem>({
           disabled={disabled}
           autoComplete="off"
           onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
           onChange={(event) => {
             onInputValueChange(event.target.value);
             setOpen(true);
