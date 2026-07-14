@@ -1,5 +1,5 @@
 import type { Handler } from "@netlify/functions";
-import { TEMPLATE_BUCKET, TEMPLATE_CONFIG_KEY } from "@shared/constants";
+import { TEMPLATE_BUCKET, TEMPLATE_CONFIG_KEY } from "../../shared/constants";
 import { assertAdmin } from "./_shared/adminAuth";
 import { fillExportWorkbook } from "./_shared/excel";
 import { badRequest, serverError, unauthorized } from "./_shared/responses";

@@ -1,5 +1,5 @@
 import type { Handler } from "@netlify/functions";
-import { normalizeText } from "@shared/normalizeText";
+import { normalizeText } from "../../shared/normalizeText";
 import { assertAdmin } from "./_shared/adminAuth";
 import { badRequest, ok, serverError, unauthorized } from "./_shared/responses";
 import { getSupabaseAdmin } from "./_shared/supabaseAdmin";

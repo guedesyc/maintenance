@@ -1,8 +1,8 @@
 import * as XLSX from "xlsx";
-import { DEFAULT_TEMPLATE_SHEET } from "@shared/constants";
-import { generateEquipmentCode } from "@shared/generateEquipmentCode";
-import { normalizeText } from "@shared/normalizeText";
-import type { ExportTemplateMetadata, ImportParseResult, RegistrationListRow } from "@shared/types";
+import { DEFAULT_TEMPLATE_SHEET } from "../../../shared/constants";
+import { generateEquipmentCode } from "../../../shared/generateEquipmentCode";
+import { normalizeText } from "../../../shared/normalizeText";
+import type { ExportTemplateMetadata, ImportParseResult, RegistrationListRow } from "../../../shared/types";
 
 export function parseCatalogWorkbook(buffer: Buffer): ImportParseResult {
   const workbook = XLSX.read(buffer, { type: "buffer" });

@@ -4,7 +4,7 @@ import { validateTemplateWorkbook } from "./_shared/excel";
 import { badRequest, ok, serverError, unauthorized } from "./_shared/responses";
 import { getSupabaseAdmin } from "./_shared/supabaseAdmin";
 import { parseJsonBody } from "./_shared/validation";
-import { TEMPLATE_BUCKET, TEMPLATE_CONFIG_KEY } from "@shared/constants";
+import { TEMPLATE_BUCKET, TEMPLATE_CONFIG_KEY } from "../../shared/constants";
 
 export const handler: Handler = async (event) => {
   try {

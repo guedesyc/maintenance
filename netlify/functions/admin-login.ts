@@ -1,5 +1,5 @@
 import type { Handler } from "@netlify/functions";
-import { adminLoginSchema } from "@shared/validations";
+import { adminLoginSchema } from "../../shared/validations";
 import { createAdminCookie } from "./_shared/adminAuth";
 import { badRequest, ok, unauthorized } from "./_shared/responses";
 import { parseJsonBody, requireEnv } from "./_shared/validation";
