@@ -1,6 +1,7 @@
 import { LogOut, LayoutDashboard, ClipboardList, Building2, Package2, Upload, FileSpreadsheet } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { logoutAdmin } from "@/services/adminApiService";
+import AppFooter from "./AppFooter";
 
 const links = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -52,8 +53,9 @@ export default function AdminLayout() {
             Sair
           </button>
         </aside>
-        <main className="min-w-0 flex-1">
+        <main className="flex min-w-0 flex-1 flex-col">
           <Outlet />
+          <AppFooter />
         </main>
       </div>
     </div>

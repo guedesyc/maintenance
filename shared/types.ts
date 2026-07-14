@@ -14,8 +14,11 @@ export interface Unit extends CatalogItem {}
 export interface EquipmentCatalogItem extends CatalogItem {}
 
 export interface RegistrationEquipmentInput {
-  equipamento_id: string;
+  equipamento_id?: string;
+  equipamento_nome?: string;
   status: Status;
+  equipamento_cliente: boolean;
+  patrimonio_cliente?: string;
 }
 
 export interface RegistrationPayload {
@@ -25,12 +28,15 @@ export interface RegistrationPayload {
 }
 
 export interface RegistrationResultItem {
-  patrimonio_id: string;
-  equipamento_id: string;
+  item_id: string;
+  patrimonio_id: string | null;
+  equipamento_id: string | null;
   equipamento_nome: string;
-  numero_patrimonio: number;
+  numero_patrimonio: number | null;
+  patrimonio_codigo: string | null;
   status: Status;
   sigla_equipamento: string;
+  equipamento_cliente: boolean;
 }
 
 export interface RegistrationResult {
@@ -48,12 +54,16 @@ export interface RegistrationListRow {
   request_id: string;
   unidade_id: string;
   unidade_nome: string;
-  patrimonio_id: string;
-  equipamento_id: string;
+  item_id: string;
+  patrimonio_id: string | null;
+  equipamento_id: string | null;
   equipamento_nome: string;
-  numero_patrimonio: number;
+  numero_patrimonio: number | null;
+  patrimonio_codigo: string | null;
   sigla_equipamento: string;
   status: Status;
+  equipamento_cliente: boolean;
+  patrimonio_pendente: boolean;
 }
 
 export interface ImportPreviewRow {

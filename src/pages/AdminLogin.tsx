@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { loginAdmin } from "@/services/adminApiService";
+import AppFooter from "@/components/AppFooter";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-haze px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-haze px-4">
       <form className="panel w-full max-w-md p-8" onSubmit={onSubmit}>
         <span className="inline-flex rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
           Acesso administrativo
@@ -59,6 +60,7 @@ export default function AdminLogin() {
           {loading ? "Entrando..." : "Entrar"}
         </button>
       </form>
+      <AppFooter />
     </div>
   );
 }

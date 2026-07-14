@@ -20,7 +20,7 @@ export const handler: Handler = async (event) => {
     }
     const [{ data: equipment, error: equipmentError }, { data: assets, error: assetsError }] = await Promise.all([
       query,
-      supabase.from("patrimonios").select("equipamento_id"),
+      supabase.from("cadastro_itens").select("equipamento_id"),
     ]);
 
     if (equipmentError) throw equipmentError;
@@ -28,7 +28,9 @@ export const handler: Handler = async (event) => {
 
     const usageByEquipment = new Map<string, number>();
     for (const asset of assets ?? []) {
-      usageByEquipment.set(asset.equipamento_id, (usageByEquipment.get(asset.equipamento_id) ?? 0) + 1);
+      if (asset.equipamento_id) {
+        usageByEquipment.set(asset.equipamento_id, (usageByEquipment.get(asset.equipamento_id) ?? 0) + 1);
+      }
     }
 
     return ok({

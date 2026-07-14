@@ -2,9 +2,12 @@ import type { EquipmentCatalogItem, RegistrationResult, Status, Unit } from "@sh
 
 export interface EquipmentDraft {
   localId: string;
+  mode: "catalog" | "manual";
   equipment: EquipmentCatalogItem | null;
   equipmentText: string;
   status: Status;
+  customerEquipment: boolean;
+  customerPatrimonio: string;
 }
 
 export interface RegistrationFormState {

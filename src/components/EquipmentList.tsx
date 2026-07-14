@@ -4,6 +4,10 @@ import type { EquipmentDraft } from "@/types/ui";
 import EquipmentRow from "./EquipmentRow";
 
 interface EquipmentListProps {
+  title?: string;
+  description?: string;
+  addLabel?: string;
+  manual?: boolean;
   items: EquipmentDraft[];
   options: EquipmentCatalogItem[];
   loading: boolean;
@@ -15,6 +19,10 @@ interface EquipmentListProps {
 }
 
 export default function EquipmentList({
+  title = "Equipamentos",
+  description = "Adicione quantos equipamentos forem necessarios. O ADM gerara os patrimonios dos itens da empresa.",
+  addLabel = "Adicionar equipamento",
+  manual = false,
   items,
   options,
   loading,
@@ -27,10 +35,8 @@ export default function EquipmentList({
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold text-ink">Equipamentos</h2>
-        <p className="mt-1 text-sm text-stone-600">
-          Adicione quantos equipamentos forem necessarios. Cada item recebera um patrimonio unico.
-        </p>
+        <h2 className="text-xl font-semibold text-ink">{title}</h2>
+        <p className="mt-1 text-sm text-stone-600">{description}</p>
       </div>
 
       <div className="space-y-4">
@@ -38,6 +44,7 @@ export default function EquipmentList({
           <EquipmentRow
             key={item.localId}
             item={item}
+            manual={manual}
             options={options}
             loading={loading}
             error={error}
@@ -58,6 +65,16 @@ export default function EquipmentList({
               }))
             }
             onStatusChange={(status) => onUpdate(item.localId, (current) => ({ ...current, status }))}
+            onCustomerEquipmentChange={(customerEquipment) =>
+              onUpdate(item.localId, (current) => ({
+                ...current,
+                customerEquipment,
+                customerPatrimonio: customerEquipment ? current.customerPatrimonio : "",
+              }))
+            }
+            onCustomerPatrimonioChange={(customerPatrimonio) =>
+              onUpdate(item.localId, (current) => ({ ...current, customerPatrimonio }))
+            }
             onRemove={() => onRemove(item.localId)}
           />
         ))}
@@ -65,7 +82,7 @@ export default function EquipmentList({
 
       <button type="button" className="button-secondary w-full py-3" disabled={disabled} onClick={onAdd}>
         <Plus className="mr-2 h-4 w-4" />
-        Adicionar equipamento
+        {addLabel}
       </button>
     </section>
   );

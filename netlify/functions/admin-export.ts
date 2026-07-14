@@ -38,7 +38,11 @@ export const handler: Handler = async (event) => {
       templateBuffer = Buffer.from(await file.arrayBuffer());
     }
 
-    const buffer = fillExportWorkbook(templateBuffer, rows, metadata as never);
+    const buffer = fillExportWorkbook(
+      templateBuffer,
+      rows.filter((row) => !row.patrimonio_pendente),
+      metadata as never,
+    );
     const stamp = new Date()
       .toISOString()
       .replace(/[:T]/g, "-")

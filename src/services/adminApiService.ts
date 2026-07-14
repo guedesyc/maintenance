@@ -63,6 +63,12 @@ export function getRegistrations(params: URLSearchParams) {
   }>(`/api/admin-list-registrations?${params.toString()}`);
 }
 
+export function generatePendingPatrimonios() {
+  return adminFetch<{ generated: number }>("/api/admin-generate-patrimonios", {
+    method: "POST",
+  });
+}
+
 export function importUnits(payload: { fileName: string; fileBase64: string; mode: "ADD" | "REPLACE" }) {
   return adminFetch<ImportSummary>("/api/admin-import-units", {
     method: "POST",

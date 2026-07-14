@@ -63,11 +63,11 @@ export default function AdminDashboard() {
             <tbody>
               {data.ultimosCadastros.length > 0 ? (
                 data.ultimosCadastros.map((row) => (
-                  <tr key={row.patrimonio_id} className="border-t border-stone-100">
+                  <tr key={row.item_id} className="border-t border-stone-100">
                     <td className="py-3">{new Date(row.cadastro_created_at).toLocaleString("pt-BR")}</td>
                     <td className="py-3">{row.unidade_nome}</td>
                     <td className="py-3">{row.equipamento_nome}</td>
-                    <td className="py-3">{row.numero_patrimonio}</td>
+                    <td className="py-3">{row.patrimonio_codigo ?? "Pendente"}</td>
                     <td className="py-3">{row.status}</td>
                   </tr>
                 ))

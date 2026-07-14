@@ -10,13 +10,17 @@ import type { EquipmentDraft } from "@/types/ui";
 import UnitAutocomplete from "@/components/UnitAutocomplete";
 import EquipmentList from "@/components/EquipmentList";
 import SuccessModal from "@/components/SuccessModal";
+import AppFooter from "@/components/AppFooter";
 
-function createEmptyDraft(): EquipmentDraft {
+function createEmptyDraft(mode: EquipmentDraft["mode"] = "catalog"): EquipmentDraft {
   return {
     localId: crypto.randomUUID(),
+    mode,
     equipment: null,
     equipmentText: "",
     status: "ATIVO",
+    customerEquipment: false,
+    customerPatrimonio: "",
   };
 }
 
@@ -26,6 +30,8 @@ export default function Home() {
   const [unit, setUnit] = useState<Unit | null>(null);
   const [unitText, setUnitText] = useState("");
   const [items, setItems] = useState<EquipmentDraft[]>([createEmptyDraft()]);
+  const [hasMissingItems, setHasMissingItems] = useState(false);
+  const [missingItems, setMissingItems] = useState<EquipmentDraft[]>([]);
   const [requestId, setRequestId] = useState(createRequestId());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,12 +44,25 @@ export default function Home() {
       setError("Selecione uma unidade valida.");
       return;
     }
-    if (items.length === 0) {
+    const allItems = [...items, ...(hasMissingItems ? missingItems : [])];
+
+    if (allItems.length === 0) {
       setError("Adicione pelo menos um equipamento.");
       return;
     }
+
     if (items.some((item) => !item.equipment)) {
       setError("Selecione um equipamento valido em todas as linhas.");
+      return;
+    }
+
+    if (hasMissingItems && missingItems.some((item) => !item.equipmentText.trim())) {
+      setError("Digite o nome de todos os itens faltantes.");
+      return;
+    }
+
+    if (allItems.some((item) => item.customerEquipment && !item.customerPatrimonio.trim())) {
+      setError("Informe o patrimonio de todos os equipamentos do cliente.");
       return;
     }
 
@@ -53,9 +72,11 @@ export default function Home() {
     const payload: RegistrationPayload = {
       request_id: requestId,
       unidade_id: unit.id,
-      equipamentos: items.map((item) => ({
-        equipamento_id: item.equipment!.id,
+      equipamentos: allItems.map((item) => ({
+        ...(item.mode === "catalog" ? { equipamento_id: item.equipment!.id } : { equipamento_nome: item.equipmentText.trim() }),
         status: item.status,
+        equipamento_cliente: item.customerEquipment,
+        patrimonio_cliente: item.customerEquipment ? item.customerPatrimonio.trim() : undefined,
       })),
     };
 
@@ -73,6 +94,8 @@ export default function Home() {
     setUnit(null);
     setUnitText("");
     setItems([createEmptyDraft()]);
+    setHasMissingItems(false);
+    setMissingItems([]);
     setResult(null);
     setError(null);
     setRequestId(createRequestId());
@@ -96,11 +119,11 @@ export default function Home() {
               </div>
 
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-ink">
-                Selecione sua unidade, adicione os equipamentos e finalize o cadastro para gerar os patrimonios.
+                Selecione sua unidade, adicione os equipamentos e envie o cadastro para o painel ADM.
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-stone-600">
                 O formulario foi desenhado para ser rapido no computador e no celular, com validacao completa e
-                geracao segura de patrimonios apenas no momento da finalizacao.
+                geracao segura de patrimonios pelo painel administrativo.
               </p>
               <dl className="mt-8 grid gap-4 sm:grid-cols-3">
                 <div className="rounded-3xl border border-brand-100 bg-brand-50/70 p-4">
@@ -122,11 +145,11 @@ export default function Home() {
               <ol className="mt-5 space-y-4 text-sm text-brand-50">
                 <li>1. Selecione uma unidade valida a partir do catalogo importado.</li>
                 <li>2. Adicione um ou mais equipamentos e escolha o status de cada item.</li>
-                <li>3. Clique em "Gerar patrimonios e finalizar cadastro!" para concluir.</li>
+                <li>3. Clique em "Enviar cadastro" para concluir. O ADM gerara os patrimonios depois.</li>
               </ol>
               <div className="mt-8 rounded-3xl border border-brand-700/60 bg-white/10 p-4 text-sm text-brand-50">
-                Os numeros de patrimonio nao sao gerados antes da confirmacao final e o mesmo request_id evita
-                duplicidades em caso de reenvio.
+                Equipamentos do cliente exigem patrimonio manual no proprio formulario. Os demais ficam pendentes para
+                geracao sequencial no ADM.
               </div>
             </div>
           </div>
@@ -169,15 +192,57 @@ export default function Home() {
               }
             />
 
+            <section className="rounded-3xl border border-stone-200 bg-white p-4">
+              <label className="mb-2 block text-sm font-medium text-ink">Tem algum item que nao esta na lista?</label>
+              <select
+                className="input-base"
+                value={hasMissingItems ? "SIM" : "NAO"}
+                disabled={disabled}
+                onChange={(event) => {
+                  const next = event.target.value === "SIM";
+                  setHasMissingItems(next);
+                  setMissingItems((current) => (next && current.length === 0 ? [createEmptyDraft("manual")] : current));
+                }}
+              >
+                <option value="NAO">Nao</option>
+                <option value="SIM">Sim</option>
+              </select>
+            </section>
+
+            {hasMissingItems && (
+              <EquipmentList
+                title="Itens faltantes"
+                description="Digite os itens que nao aparecem na lista. Estes campos nao usam sugestao automatica."
+                addLabel="Adicionar item faltante"
+                manual
+                items={missingItems}
+                options={[]}
+                loading={false}
+                error={null}
+                disabled={disabled}
+                onAdd={() => setMissingItems((current) => [...current, createEmptyDraft("manual")])}
+                onUpdate={(localId, recipe) =>
+                  setMissingItems((current) => current.map((item) => (item.localId === localId ? recipe(item) : item)))
+                }
+                onRemove={(localId) =>
+                  setMissingItems((current) => {
+                    const next = current.filter((item) => item.localId !== localId);
+                    return next.length > 0 ? next : [createEmptyDraft("manual")];
+                  })
+                }
+              />
+            )}
+
             {error && (
               <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
             )}
 
             <button type="button" className="button-primary w-full py-4 text-lg" disabled={loading} onClick={submit}>
-              {loading ? "Gerando patrimonios..." : "Gerar patrimonios e finalizar cadastro!"}
+              {loading ? "Enviando cadastro..." : "Enviar cadastro"}
             </button>
           </div>
         </section>
+        <AppFooter />
       </div>
       <SuccessModal result={result} onReset={resetForm} />
     </div>

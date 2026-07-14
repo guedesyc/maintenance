@@ -6,6 +6,7 @@ import StatusSelector from "./StatusSelector";
 
 interface EquipmentRowProps {
   item: EquipmentDraft;
+  manual?: boolean;
   options: EquipmentCatalogItem[];
   loading: boolean;
   error: string | null;
@@ -14,11 +15,14 @@ interface EquipmentRowProps {
   onTextChange: (value: string) => void;
   onSelect: (equipment: EquipmentCatalogItem) => void;
   onStatusChange: (status: EquipmentDraft["status"]) => void;
+  onCustomerEquipmentChange: (value: boolean) => void;
+  onCustomerPatrimonioChange: (value: string) => void;
   onRemove: () => void;
 }
 
 export default function EquipmentRow({
   item,
+  manual = false,
   options,
   loading,
   error,
@@ -27,23 +31,60 @@ export default function EquipmentRow({
   onTextChange,
   onSelect,
   onStatusChange,
+  onCustomerEquipmentChange,
+  onCustomerPatrimonioChange,
   onRemove,
 }: EquipmentRowProps) {
   return (
-    <div className="grid gap-4 rounded-3xl border border-stone-200 bg-stone-50/80 p-4 lg:grid-cols-[minmax(0,2fr)_220px_160px]">
-      <EquipmentAutocomplete
-        items={options}
-        loading={loading}
-        error={error}
-        value={item.equipment}
-        inputValue={item.equipmentText}
-        disabled={disabled}
-        onInputValueChange={onTextChange}
-        onSelect={onSelect}
-      />
+    <div className="grid gap-4 rounded-3xl border border-stone-200 bg-stone-50/80 p-4 xl:grid-cols-[minmax(0,2fr)_180px_220px_160px]">
+      {manual ? (
+        <div>
+          <label className="mb-2 block text-sm font-medium text-ink">Item faltante</label>
+          <input
+            className="input-base"
+            value={item.equipmentText}
+            disabled={disabled}
+            placeholder="Digite o item"
+            onChange={(event) => onTextChange(event.target.value)}
+          />
+        </div>
+      ) : (
+        <EquipmentAutocomplete
+          items={options}
+          loading={loading}
+          error={error}
+          value={item.equipment}
+          inputValue={item.equipmentText}
+          disabled={disabled}
+          onInputValueChange={onTextChange}
+          onSelect={onSelect}
+        />
+      )}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-ink">Equipamento do Cliente</label>
+        <select
+          className="input-base"
+          value={item.customerEquipment ? "SIM" : "NAO"}
+          disabled={disabled}
+          onChange={(event) => onCustomerEquipmentChange(event.target.value === "SIM")}
+        >
+          <option value="NAO">Nao</option>
+          <option value="SIM">Sim</option>
+        </select>
+      </div>
       <div>
         <label className="mb-2 block text-sm font-medium text-ink">Patrimonio</label>
-        <div className="input-base flex items-center text-stone-500">Sera gerado ao finalizar</div>
+        {item.customerEquipment ? (
+          <input
+            className="input-base"
+            value={item.customerPatrimonio}
+            disabled={disabled}
+            placeholder="Digite o patrimonio"
+            onChange={(event) => onCustomerPatrimonioChange(event.target.value)}
+          />
+        ) : (
+          <div className="input-base flex items-center text-stone-500">ADM gera depois</div>
+        )}
       </div>
       <div className="flex flex-col gap-4">
         <StatusSelector value={item.status} disabled={disabled} onChange={onStatusChange} />

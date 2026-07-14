@@ -26,13 +26,15 @@ export default function SuccessModal({ result, onReset }: SuccessModalProps) {
           </button>
         </div>
 
-        <h2 className="mt-4 text-2xl font-semibold text-ink">Cadastro finalizado com sucesso!</h2>
+        <h2 className="mt-4 text-2xl font-semibold text-ink">Cadastro enviado com sucesso!</h2>
         <p className="mt-2 text-sm text-stone-600">Unidade: {result.unidade_nome}</p>
         <div className="mt-6 space-y-4">
           {result.equipamentos.map((item) => (
-            <article key={item.patrimonio_id} className="rounded-2xl border border-brand-100 bg-brand-50/60 p-4">
+            <article key={item.item_id} className="rounded-2xl border border-brand-100 bg-brand-50/60 p-4">
               <h3 className="font-semibold text-ink">{item.equipamento_nome}</h3>
-              <p className="mt-2 text-sm text-stone-700">Patrimonio: {item.numero_patrimonio}</p>
+              <p className="mt-2 text-sm text-stone-700">
+                Patrimonio: {item.patrimonio_codigo ?? "Pendente no painel ADM"}
+              </p>
               <p className="mt-1 text-sm text-stone-700">Status: {item.status}</p>
             </article>
           ))}

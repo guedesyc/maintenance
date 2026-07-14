@@ -103,7 +103,7 @@ export function fillExportWorkbook(
   rows.forEach((row, index) => {
     const currentRow = index + 2;
     sheet[`A${currentRow}`] = { t: "s", v: row.equipamento_nome };
-    sheet[`C${currentRow}`] = { t: "n", v: row.numero_patrimonio };
+    sheet[`C${currentRow}`] = { t: "s", v: row.patrimonio_codigo ?? "" };
     sheet[`E${currentRow}`] = { t: "s", v: row.unidade_nome };
     sheet[`F${currentRow}`] = { t: "s", v: row.sigla_equipamento || generateEquipmentCode(row.equipamento_nome) };
     sheet[`H${currentRow}`] = { t: "s", v: row.status };
