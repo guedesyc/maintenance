@@ -1,15 +1,19 @@
 import type { RegistrationPayload, RegistrationResult } from "@shared/types";
 import { PUBLIC_ERROR_MESSAGE } from "@shared/constants";
-import { supabase } from "./supabase";
 
 export async function createRegistration(payload: RegistrationPayload): Promise<RegistrationResult> {
-  const { data, error } = await supabase.rpc("create_registration", {
-    payload,
+  const response = await fetch("/api/public-create-registration", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
   });
+  const body = (await response.json().catch(() => null)) as RegistrationResult | { error?: string } | null;
 
-  if (error) {
-    throw new Error(PUBLIC_ERROR_MESSAGE);
+  if (!response.ok) {
+    throw new Error((body as { error?: string } | null)?.error ?? PUBLIC_ERROR_MESSAGE);
   }
 
-  return data as RegistrationResult;
+  return body as RegistrationResult;
 }

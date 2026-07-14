@@ -1,16 +1,12 @@
-import { supabase } from "./supabase";
 import type { Unit } from "@shared/types";
 
 export async function listActiveUnits(): Promise<Unit[]> {
-  const { data, error } = await supabase
-    .from("unidades")
-    .select("id, nome, nome_normalizado, ativo")
-    .eq("ativo", true)
-    .order("nome");
+  const response = await fetch("/api/public-units");
+  const body = (await response.json().catch(() => null)) as { rows?: Unit[]; error?: string } | null;
 
-  if (error) {
-    throw error;
+  if (!response.ok) {
+    throw new Error(body?.error ?? "Nao foi possivel carregar as unidades.");
   }
 
-  return data ?? [];
+  return body?.rows ?? [];
 }
