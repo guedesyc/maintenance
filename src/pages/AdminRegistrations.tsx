@@ -71,7 +71,7 @@ export default function AdminRegistrations() {
           <h1 className="text-3xl font-semibold text-ink">Cadastros</h1>
           <p className="mt-2 text-sm text-stone-600">Pesquise, filtre e gere os patrimonios pendentes.</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_180px_auto]">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_180px_200px_minmax(260px,auto)]">
           <input
             className="input-base"
             placeholder="Pesquisar unidade, equipamento ou patrimonio"
@@ -110,7 +110,7 @@ export default function AdminRegistrations() {
           </select>
           <button
             type="button"
-            className="button-primary whitespace-nowrap"
+            className="button-primary min-h-11 whitespace-normal text-center leading-tight sm:col-span-2 xl:col-span-1"
             disabled={generating}
             onClick={generatePatrimonios}
           >
