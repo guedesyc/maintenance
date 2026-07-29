@@ -15,7 +15,7 @@ export const handler: Handler = async (event) => {
     const supabase = getSupabaseAdmin();
     const params = event.queryStringParameters ?? {};
     const page = Math.max(Number(params.page ?? "1"), 1);
-    const pageSize = Math.max(Number(params.pageSize ?? "12"), 1);
+    const pageSize = Math.max(Number(params.pageSize ?? "50"), 1);
     const search = (params.search ?? "").trim();
     const status = (params.status ?? "").trim();
     const responsavel = (params.responsavel ?? "").trim();

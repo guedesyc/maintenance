@@ -21,7 +21,7 @@ export default function AdminRegistrations() {
   const params = useMemo(() => {
     const current = new URLSearchParams({
       page: String(page),
-      pageSize: "12",
+      pageSize: "50",
     });
     if (search) current.set("search", search);
     if (status) current.set("status", status);
@@ -211,7 +211,7 @@ export default function AdminRegistrations() {
       </div>
 
       <div className="mt-6">
-        <Pagination page={page} pageSize={12} total={total} onPageChange={setPage} />
+        <Pagination page={page} pageSize={50} total={total} onPageChange={setPage} />
       </div>
     </section>
   );
