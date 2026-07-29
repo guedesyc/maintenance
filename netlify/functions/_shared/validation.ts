@@ -6,7 +6,8 @@ export function parseJsonBody<T>(body: string | null): T {
 }
 
 export function requireEnv(name: string): string {
-  const value = process.env[name];
+  const deno = (globalThis as typeof globalThis & { Deno?: { env: { get(key: string): string | undefined } } }).Deno;
+  const value = deno?.env.get(name) ?? process.env[name];
   if (!value) {
     throw new Error(`Variavel de ambiente obrigatoria ausente: ${name}`);
   }
