@@ -32,6 +32,6 @@ export const handler: Handler = async (event) => {
       ultimosCadastros: ultimos.rows,
     });
   } catch (error) {
-    return serverError(error instanceof Error ? error.message : undefined);
+    return serverError(error instanceof Error ? error.message : JSON.stringify(error));
   }
 };

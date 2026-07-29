@@ -24,6 +24,6 @@ export const handler: Handler = async (event) => {
 
     return ok(data);
   } catch (error) {
-    return serverError(error instanceof Error ? error.message : undefined);
+    return serverError(error instanceof Error ? error.message : JSON.stringify(error));
   }
 };
