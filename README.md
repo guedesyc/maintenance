@@ -172,13 +172,13 @@ supabase secrets set ADMIN_USERNAME=admin ADMIN_PASSWORD="SUA_SENHA" ADMIN_SESSI
 supabase functions deploy api --no-verify-jwt
 ```
 
-O endpoint da API sera:
+O endpoint base da API sera:
 
 ```text
-https://SEU_PROJECT_REF.supabase.co/functions/v1/api
+https://SEU_PROJECT_REF.supabase.co/functions/v1
 ```
 
-Configure esse endereco na Hostinger como `VITE_API_BASE_URL` e faca um novo build. As variaveis `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` normalmente ja ficam disponiveis no ambiente das Edge Functions; se o painel solicitar, configure-as como secrets do projeto. A chave `service_role` nunca deve ser colocada em `VITE_API_BASE_URL` ou no frontend.
+Configure esse endereco na Hostinger como `VITE_API_BASE_URL` e faca um novo build. O frontend acrescenta `/api/...` a esse endereco. As variaveis `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` normalmente ja ficam disponiveis no ambiente das Edge Functions; se o painel solicitar, configure-as como secrets do projeto. A chave `service_role` nunca deve ser colocada em `VITE_API_BASE_URL` ou no frontend.
 
 Para producao no Netlify, configure o usuario administrativo conforme solicitado:
 

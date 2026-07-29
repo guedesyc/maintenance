@@ -113,7 +113,11 @@ Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers });
 
   const url = new URL(request.url);
-  const route = url.pathname.startsWith("/api/") ? url.pathname : `/api${url.pathname}`;
+  const functionPrefix = "/functions/v1/api";
+  const functionPath = url.pathname.startsWith(functionPrefix)
+    ? url.pathname.slice(functionPrefix.length)
+    : url.pathname;
+  const route = functionPath.startsWith("/api/") ? functionPath : `/api${functionPath}`;
   const handler = handlers[route];
   if (!handler) return new Response(JSON.stringify({ error: "Rota de API nao encontrada." }), { status: 404, headers });
 
