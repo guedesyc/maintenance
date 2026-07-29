@@ -142,9 +142,21 @@ ADMIN_SESSION_SECRET=
 ### Regras importantes
 
 - `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` podem aparecer no frontend.
-- `SUPABASE_SERVICE_ROLE_KEY` deve existir apenas nas Netlify Functions.
-- `ADMIN_USERNAME`, `ADMIN_PASSWORD` e `ADMIN_SESSION_SECRET` devem existir apenas nas Netlify Functions.
+- `SUPABASE_SERVICE_ROLE_KEY` deve existir apenas no servidor Node.
+- `ADMIN_USERNAME`, `ADMIN_PASSWORD` e `ADMIN_SESSION_SECRET` devem existir apenas no servidor Node.
 - Nao envie credenciais reais para o GitHub.
+
+### Producao na Hostinger
+
+O projeto pode ser executado como uma aplicacao Node.js na Hostinger usando:
+
+- comando de build: `npm run build`
+- comando de inicializacao: `npm start`
+- porta: a porta fornecida pela variavel `PORT`
+
+O `server.ts` serve o frontend compilado em `dist` e encaminha as rotas `/api/...` para as funcoes do projeto. Isso substitui o encaminhamento das Netlify Functions e permite executar o sistema integralmente na Hostinger.
+
+Configure todas as variaveis do `.env.example` no ambiente da aplicacao antes do build. As variaveis `VITE_` sao incorporadas ao frontend durante o build; as demais permanecem no servidor.
 
 Para producao no Netlify, configure o usuario administrativo conforme solicitado:
 
