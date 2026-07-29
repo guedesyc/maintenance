@@ -30,6 +30,7 @@ export default function AdminLogin() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-haze px-4">
       <form className="panel w-full max-w-md p-8" onSubmit={onSubmit}>
+        <img src="/yg-systems-logo.png" alt="YG Systems" className="h-20 w-20 rounded-2xl object-cover shadow-sm" />
         <span className="inline-flex rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
           Acesso administrativo
         </span>

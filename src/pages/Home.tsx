@@ -108,7 +108,13 @@ export default function Home() {
         <section className="panel overflow-hidden">
           <div className="grid gap-8 p-6 md:p-10 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-4">
+                <img
+                  src="/yg-systems-logo.png"
+                  alt="YG Systems"
+                  className="h-16 w-16 rounded-2xl object-cover shadow-sm"
+                />
+                <div className="flex flex-wrap items-center gap-3">
                 <span className="inline-flex rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">
                   Cadastro de Equipamentos
                 </span>
@@ -116,6 +122,7 @@ export default function Home() {
                   <ShieldCheck className="mr-2 h-4 w-4" />
                   Painel ADM
                 </Link>
+                </div>
               </div>
 
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-ink">

@@ -20,6 +20,7 @@ export default function AdminLayout() {
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 px-4 py-6 lg:flex-row lg:px-6">
         <aside className="panel w-full p-4 lg:sticky lg:top-6 lg:h-fit lg:w-72">
           <div className="rounded-3xl bg-brand-900 px-5 py-6 text-white">
+            <img src="/yg-systems-logo.png" alt="YG Systems" className="h-16 w-16 rounded-2xl object-cover shadow-sm" />
             <p className="text-xs uppercase tracking-[0.25em] text-brand-100">Painel administrativo</p>
             <h1 className="mt-3 text-2xl font-semibold">Equipamentos</h1>
             <p className="mt-2 text-sm text-brand-100">Importe catalogos, acompanhe cadastros e exporte os dados.</p>
