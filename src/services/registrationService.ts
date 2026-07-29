@@ -1,8 +1,9 @@
 import type { RegistrationPayload, RegistrationResult } from "@shared/types";
 import { PUBLIC_ERROR_MESSAGE } from "@shared/constants";
+import { apiUrl } from "./api";
 
 export async function createRegistration(payload: RegistrationPayload): Promise<RegistrationResult> {
-  const response = await fetch("/api/public-create-registration", {
+  const response = await fetch(apiUrl("/api/public-create-registration"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

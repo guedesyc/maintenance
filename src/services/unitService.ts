@@ -1,7 +1,8 @@
 import type { Unit } from "@shared/types";
+import { apiUrl } from "./api";
 
 export async function listActiveUnits(): Promise<Unit[]> {
-  const response = await fetch("/api/public-units");
+  const response = await fetch(apiUrl("/api/public-units"));
   const body = (await response.json().catch(() => null)) as { rows?: Unit[]; error?: string } | null;
 
   if (!response.ok) {

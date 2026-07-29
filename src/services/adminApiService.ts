@@ -5,6 +5,7 @@ import type {
   ImportSummary,
   RegistrationListRow,
 } from "@shared/types";
+import { apiUrl } from "./api";
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -21,7 +22,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export async function adminFetch<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
+  const response = await fetch(apiUrl(url), {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
@@ -91,7 +92,7 @@ export function uploadTemplate(payload: { fileName: string; fileBase64: string }
 }
 
 export async function downloadTemplate() {
-  const response = await fetch("/api/admin-download-template", {
+  const response = await fetch(apiUrl("/api/admin-download-template"), {
     credentials: "include",
   });
 
@@ -106,7 +107,7 @@ export async function downloadTemplate() {
 }
 
 export async function exportRegistrations(params: URLSearchParams) {
-  const response = await fetch(`/api/admin-export?${params.toString()}`, {
+  const response = await fetch(apiUrl(`/api/admin-export?${params.toString()}`), {
     credentials: "include",
   });
   if (!response.ok) {

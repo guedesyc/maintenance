@@ -130,6 +130,7 @@ Copie `.env.example` para `.env.local` durante o desenvolvimento.
 ```env
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
+VITE_API_BASE_URL=
 
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
@@ -157,6 +158,27 @@ O projeto pode ser executado como uma aplicacao Node.js na Hostinger usando:
 O `server.ts` serve o frontend compilado em `dist` e encaminha as rotas `/api/...` para as funcoes do projeto. Isso substitui o encaminhamento das Netlify Functions e permite executar o sistema integralmente na Hostinger.
 
 Configure todas as variaveis do `.env.example` no ambiente da aplicacao antes do build. As variaveis `VITE_` sao incorporadas ao frontend durante o build; as demais permanecem no servidor.
+
+### Supabase Edge Functions
+
+O backend tambem pode ser publicado sem Netlify usando a funcao `supabase/functions/api`. Ela preserva as rotas `/api/...` do frontend e reutiliza os handlers existentes.
+
+Na CLI do Supabase, a partir da raiz do repositorio:
+
+```bash
+supabase login
+supabase link --project-ref SEU_PROJECT_REF
+supabase secrets set ADMIN_USERNAME=admin ADMIN_PASSWORD="SUA_SENHA" ADMIN_SESSION_SECRET="UM_SEGREDO_LONGO"
+supabase functions deploy api --no-verify-jwt
+```
+
+O endpoint da API sera:
+
+```text
+https://SEU_PROJECT_REF.supabase.co/functions/v1/api
+```
+
+Configure esse endereco na Hostinger como `VITE_API_BASE_URL` e faca um novo build. As variaveis `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` normalmente ja ficam disponiveis no ambiente das Edge Functions; se o painel solicitar, configure-as como secrets do projeto. A chave `service_role` nunca deve ser colocada em `VITE_API_BASE_URL` ou no frontend.
 
 Para producao no Netlify, configure o usuario administrativo conforme solicitado:
 

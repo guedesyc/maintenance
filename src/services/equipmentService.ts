@@ -1,7 +1,8 @@
 import type { EquipmentCatalogItem } from "@shared/types";
+import { apiUrl } from "./api";
 
 export async function listActiveEquipment(): Promise<EquipmentCatalogItem[]> {
-  const response = await fetch("/api/public-equipment");
+  const response = await fetch(apiUrl("/api/public-equipment"));
   const body = (await response.json().catch(() => null)) as { rows?: EquipmentCatalogItem[]; error?: string } | null;
 
   if (!response.ok) {
