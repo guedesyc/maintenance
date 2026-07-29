@@ -14,6 +14,7 @@ export default function AdminRegistrations() {
   const [status, setStatus] = useState("");
   const [responsavel, setResponsavel] = useState("");
   const [unitNames, setUnitNames] = useState<string[]>([]);
+  const [selectedUnit, setSelectedUnit] = useState("");
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -73,14 +74,15 @@ export default function AdminRegistrations() {
           <h1 className="text-3xl font-semibold text-ink">Cadastros</h1>
           <p className="mt-2 text-sm text-stone-600">Pesquise, filtre e gere os patrimonios pendentes.</p>
         </div>
-        <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_180px_200px_minmax(260px,auto)]">
+        <div className="mt-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_180px_220px]">
           <input
             className="input-base"
             placeholder="Pesquisar unidade, equipamento ou patrimonio"
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
+              setSelectedUnit("");
               setPage(1);
             }}
           />
@@ -101,6 +103,7 @@ export default function AdminRegistrations() {
             value={responsavel}
             onChange={(event) => {
               setResponsavel(event.target.value);
+              setSelectedUnit("");
               setPage(1);
             }}
           >
@@ -113,7 +116,7 @@ export default function AdminRegistrations() {
           </select>
           <button
             type="button"
-            className="button-primary min-h-11 whitespace-normal text-center leading-tight sm:col-span-2 xl:col-span-4"
+            className="button-primary min-h-11 whitespace-normal text-center leading-tight sm:col-span-2 xl:col-span-3"
             disabled={generating}
             onClick={generatePatrimonios}
           >
@@ -121,13 +124,30 @@ export default function AdminRegistrations() {
           </button>
         </div>
         {responsavel && unitNames.length > 0 && (
-          <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
-            <p className="text-sm font-semibold text-ink">Unidades com cadastros de {responsavel}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-5 border-t border-stone-200 pt-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="text-sm font-semibold text-ink">Unidades preenchidas por {responsavel}</p>
+              <span className="text-xs text-stone-500">{unitNames.length} unidade(s)</span>
+            </div>
+            <div className="mt-3 grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
               {unitNames.map((unitName) => (
-                <span key={unitName} className="rounded-full bg-white px-3 py-1 text-xs text-stone-700 shadow-sm">
+                <button
+                  key={unitName}
+                  type="button"
+                  className={`min-h-11 rounded-xl border px-3 py-2 text-left text-xs transition ${
+                    selectedUnit === unitName
+                      ? "border-brand-600 bg-brand-50 font-semibold text-brand-800"
+                      : "border-stone-200 bg-white text-stone-700 hover:border-brand-300 hover:bg-brand-50"
+                  }`}
+                  aria-pressed={selectedUnit === unitName}
+                  onClick={() => {
+                    setSelectedUnit(unitName);
+                    setSearch(unitName);
+                    setPage(1);
+                  }}
+                >
                   {unitName}
-                </span>
+                </button>
               ))}
             </div>
           </div>
