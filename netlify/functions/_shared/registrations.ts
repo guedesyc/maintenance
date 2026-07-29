@@ -37,6 +37,7 @@ interface RegistrationListOptions {
   pageSize?: number;
   search?: string;
   status?: string;
+  responsavel?: string;
   limit?: number;
 }
 
@@ -48,6 +49,7 @@ export async function listAdminRegistrations(
     { data: cadastros, error: cadastrosError },
     { data: itens, error: itensError },
     { data: patrimonios, error: patrimoniosError },
+    { data: unidades, error: unidadesError },
   ] = await Promise.all([
     supabase.from("cadastros").select("id, request_id, unidade_id, unidade_nome, created_at"),
     supabase
@@ -57,14 +59,17 @@ export async function listAdminRegistrations(
       .from("patrimonios")
       .select(
         "id, cadastro_id, cadastro_item_id, equipamento_id, equipamento_nome, numero_patrimonio, patrimonio_codigo, sigla_equipamento, status, equipamento_cliente",
-      ),
+    ),
+    supabase.from("unidades").select("id, responsavel"),
   ]);
 
   if (cadastrosError) throw cadastrosError;
   if (itensError) throw itensError;
   if (patrimoniosError) throw patrimoniosError;
+  if (unidadesError) throw unidadesError;
 
   const cadastrosById = new Map((cadastros ?? []).map((cadastro) => [cadastro.id, cadastro as CadastroRow]));
+  const responsavelByUnitId = new Map((unidades ?? []).map((unidade) => [unidade.id, unidade.responsavel ?? null]));
   const patrimoniosByItemId = new Map(
     (patrimonios ?? []).map((patrimonio) => {
       const item = patrimonio as PatrimonioRow;
@@ -89,6 +94,7 @@ export async function listAdminRegistrations(
         request_id: cadastro.request_id,
         unidade_id: cadastro.unidade_id,
         unidade_nome: cadastro.unidade_nome,
+        responsavel: responsavelByUnitId.get(cadastro.unidade_id) ?? null,
         item_id: item.id,
         patrimonio_id: patrimonio?.id ?? null,
         equipamento_id: item.equipamento_id,
@@ -107,6 +113,10 @@ export async function listAdminRegistrations(
 
   if (normalizedStatus) {
     rows = rows.filter((row) => row.status === normalizedStatus);
+  }
+
+  if (options.responsavel) {
+    rows = rows.filter((row) => row.responsavel === options.responsavel);
   }
 
   if (normalizedSearch) {

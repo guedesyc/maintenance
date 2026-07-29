@@ -9,7 +9,9 @@ export interface CatalogItem {
   updated_at?: string;
 }
 
-export interface Unit extends CatalogItem {}
+export interface Unit extends CatalogItem {
+  responsavel?: string | null;
+}
 
 export interface EquipmentCatalogItem extends CatalogItem {}
 
@@ -54,6 +56,7 @@ export interface RegistrationListRow {
   request_id: string;
   unidade_id: string;
   unidade_nome: string;
+  responsavel: string | null;
   item_id: string;
   patrimonio_id: string | null;
   equipamento_id: string | null;

@@ -21,6 +21,7 @@ create table if not exists public.unidades (
   id uuid primary key default gen_random_uuid(),
   nome text not null,
   nome_normalizado text not null unique,
+  responsavel text,
   ativo boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

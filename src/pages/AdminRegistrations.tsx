@@ -12,6 +12,7 @@ export default function AdminRegistrations() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [responsavel, setResponsavel] = useState("");
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -22,8 +23,9 @@ export default function AdminRegistrations() {
     });
     if (search) current.set("search", search);
     if (status) current.set("status", status);
+    if (responsavel) current.set("responsavel", responsavel);
     return current;
-  }, [page, search, status]);
+  }, [page, search, status, responsavel]);
 
   const loadRegistrations = () => {
     setLoading(true);
@@ -42,8 +44,6 @@ export default function AdminRegistrations() {
   useEffect(() => {
     loadRegistrations();
   }, [params]);
-
-  const pendingCount = rows.filter((row) => row.patrimonio_pendente).length;
 
   const generatePatrimonios = async () => {
     setGenerating(true);
@@ -93,13 +93,28 @@ export default function AdminRegistrations() {
             <option value="ATIVO">ATIVO</option>
             <option value="INATIVO">INATIVO</option>
           </select>
+          <select
+            className="input-base"
+            value={responsavel}
+            onChange={(event) => {
+              setResponsavel(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">Todos os responsaveis</option>
+            <option value="GU - THELMA">GU - THELMA</option>
+            <option value="GU - TAYARA">GU - TAYARA</option>
+            <option value="GU - ROBERTO">GU - ROBERTO</option>
+            <option value="GU - FABIANA">GU - FABIANA</option>
+            <option value="GU - EMILIA">GU - EMILIA</option>
+          </select>
           <button
             type="button"
             className="button-primary whitespace-nowrap"
             disabled={generating}
             onClick={generatePatrimonios}
           >
-            {generating ? "Gerando..." : `Gerar patrimonios${pendingCount ? ` (${pendingCount})` : ""}`}
+            {generating ? "Gerando..." : "Gerar todos os patrimonios pendentes"}
           </button>
         </div>
       </div>

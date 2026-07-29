@@ -18,8 +18,9 @@ export const handler: Handler = async (event) => {
     const pageSize = Math.max(Number(params.pageSize ?? "12"), 1);
     const search = (params.search ?? "").trim();
     const status = (params.status ?? "").trim();
+    const responsavel = (params.responsavel ?? "").trim();
 
-    const { rows, total } = await listAdminRegistrations(supabase, { page, pageSize, search, status });
+    const { rows, total } = await listAdminRegistrations(supabase, { page, pageSize, search, status, responsavel });
 
     return ok({
       rows,

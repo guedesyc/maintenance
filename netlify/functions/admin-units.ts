@@ -14,7 +14,7 @@ export const handler: Handler = async (event) => {
     const supabase = getSupabaseAdmin();
     const params = event.queryStringParameters ?? {};
     const search = (params.search ?? "").trim();
-    let query = supabase.from("unidades").select("id, nome, nome_normalizado, ativo, created_at, updated_at").order("nome");
+    let query = supabase.from("unidades").select("id, nome, nome_normalizado, responsavel, ativo, created_at, updated_at").order("nome");
     if (search) {
       query = query.ilike("nome", `%${search}%`);
     }

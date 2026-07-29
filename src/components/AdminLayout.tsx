@@ -45,8 +45,11 @@ export default function AdminLayout() {
             type="button"
             className="button-secondary mt-6 w-full"
             onClick={async () => {
-              await logoutAdmin();
-              navigate("/admin/login", { replace: true });
+              try {
+                await logoutAdmin();
+              } finally {
+                navigate("/admin/login", { replace: true });
+              }
             }}
           >
             <LogOut className="mr-2 h-4 w-4" />
