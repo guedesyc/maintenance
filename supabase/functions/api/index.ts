@@ -139,7 +139,8 @@ Deno.serve(async (request) => {
     return new Response(responseBody, { status: Number(result.statusCode ?? 200), headers: responseHeaders });
   } catch (error) {
     console.error("Erro na Edge Function API", error);
-    return new Response(JSON.stringify({ error: "Ocorreu um erro interno." }), {
+    const message = error instanceof Error ? error.message : "Ocorreu um erro interno.";
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: new Headers({ ...Object.fromEntries(headers), "Content-Type": "application/json" }),
     });
