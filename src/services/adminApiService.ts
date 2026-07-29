@@ -59,6 +59,7 @@ export function getRegistrations(params: URLSearchParams) {
   return adminFetch<{
     rows: RegistrationListRow[];
     total: number;
+    unitNames: string[];
     page: number;
     pageSize: number;
   }>(`/api/admin-list-registrations?${params.toString()}`);

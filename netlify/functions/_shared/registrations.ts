@@ -44,7 +44,7 @@ interface RegistrationListOptions {
 export async function listAdminRegistrations(
   supabase: SupabaseClient,
   options: RegistrationListOptions = {},
-): Promise<{ rows: RegistrationListRow[]; total: number }> {
+): Promise<{ rows: RegistrationListRow[]; total: number; unitNames: string[] }> {
   const [
     { data: cadastros, error: cadastrosError },
     { data: itens, error: itensError },
@@ -128,6 +128,7 @@ export async function listAdminRegistrations(
   }
 
   const total = rows.length;
+  const unitNames = [...new Set(rows.map((row) => row.unidade_nome))].sort((left, right) => left.localeCompare(right, "pt-BR"));
   if (options.limit !== undefined) {
     rows = rows.slice(0, options.limit);
   } else if (options.page !== undefined && options.pageSize !== undefined) {
@@ -135,5 +136,5 @@ export async function listAdminRegistrations(
     rows = rows.slice(start, start + options.pageSize);
   }
 
-  return { rows, total };
+  return { rows, total, unitNames };
 }

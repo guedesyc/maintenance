@@ -20,11 +20,12 @@ export const handler: Handler = async (event) => {
     const status = (params.status ?? "").trim();
     const responsavel = (params.responsavel ?? "").trim();
 
-    const { rows, total } = await listAdminRegistrations(supabase, { page, pageSize, search, status, responsavel });
+    const { rows, total, unitNames } = await listAdminRegistrations(supabase, { page, pageSize, search, status, responsavel });
 
     return ok({
       rows,
       total,
+      unitNames,
       page,
       pageSize,
     });

@@ -13,6 +13,7 @@ export default function AdminRegistrations() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [responsavel, setResponsavel] = useState("");
+  const [unitNames, setUnitNames] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -33,6 +34,7 @@ export default function AdminRegistrations() {
       .then((response) => {
         setRows(response.rows);
         setTotal(response.total);
+        setUnitNames(response.unitNames);
         setError(null);
       })
       .catch((err: unknown) => {
@@ -66,11 +68,12 @@ export default function AdminRegistrations() {
 
   return (
     <section className="panel p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div>
         <div>
           <h1 className="text-3xl font-semibold text-ink">Cadastros</h1>
           <p className="mt-2 text-sm text-stone-600">Pesquise, filtre e gere os patrimonios pendentes.</p>
         </div>
+        <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_180px_200px_minmax(260px,auto)]">
           <input
             className="input-base"
@@ -110,12 +113,25 @@ export default function AdminRegistrations() {
           </select>
           <button
             type="button"
-            className="button-primary min-h-11 whitespace-normal text-center leading-tight sm:col-span-2 xl:col-span-1"
+            className="button-primary min-h-11 whitespace-normal text-center leading-tight sm:col-span-2 xl:col-span-4"
             disabled={generating}
             onClick={generatePatrimonios}
           >
             {generating ? "Gerando..." : "Gerar todos os patrimonios pendentes"}
           </button>
+        </div>
+        {responsavel && unitNames.length > 0 && (
+          <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+            <p className="text-sm font-semibold text-ink">Unidades com cadastros de {responsavel}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {unitNames.map((unitName) => (
+                <span key={unitName} className="rounded-full bg-white px-3 py-1 text-xs text-stone-700 shadow-sm">
+                  {unitName}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         </div>
       </div>
 
