@@ -1,7 +1,7 @@
 import type { Handler } from "@netlify/functions";
-import { assertAdmin } from "./_shared/adminAuth";
-import { ok, serverError, unauthorized } from "./_shared/responses";
-import { getSupabaseAdmin } from "./_shared/supabaseAdmin";
+import { assertAdmin } from "./_shared/adminAuth.ts";
+import { ok, serverError, unauthorized } from "./_shared/responses.ts";
+import { getSupabaseAdmin } from "./_shared/supabaseAdmin.ts";
 
 export const handler: Handler = async (event) => {
   try {

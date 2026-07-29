@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import type { HandlerEvent } from "@netlify/functions";
-import { ADMIN_COOKIE_NAME } from "../../../shared/constants";
-import { requireEnv } from "./validation";
+import { ADMIN_COOKIE_NAME } from "../../../shared/constants.ts";
+import { requireEnv } from "./validation.ts";
 
 interface AdminSessionToken {
   username: string;

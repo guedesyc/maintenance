@@ -1,8 +1,8 @@
 import type { Handler } from "@netlify/functions";
-import { adminLoginSchema } from "../../shared/validations";
-import { createAdminCookie } from "./_shared/adminAuth";
-import { badRequest, ok, unauthorized } from "./_shared/responses";
-import { parseJsonBody, requireEnv } from "./_shared/validation";
+import { adminLoginSchema } from "../../shared/validations.ts";
+import { createAdminCookie } from "./_shared/adminAuth.ts";
+import { badRequest, ok, unauthorized } from "./_shared/responses.ts";
+import { parseJsonBody, requireEnv } from "./_shared/validation.ts";
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") {

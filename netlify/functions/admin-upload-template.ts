@@ -1,10 +1,10 @@
 import type { Handler } from "@netlify/functions";
-import { assertAdmin } from "./_shared/adminAuth";
-import { validateTemplateWorkbook } from "./_shared/excel";
-import { badRequest, ok, serverError, unauthorized } from "./_shared/responses";
-import { getSupabaseAdmin } from "./_shared/supabaseAdmin";
-import { parseJsonBody } from "./_shared/validation";
-import { TEMPLATE_BUCKET, TEMPLATE_CONFIG_KEY } from "../../shared/constants";
+import { assertAdmin } from "./_shared/adminAuth.ts";
+import { validateTemplateWorkbook } from "./_shared/excel.ts";
+import { badRequest, ok, serverError, unauthorized } from "./_shared/responses.ts";
+import { getSupabaseAdmin } from "./_shared/supabaseAdmin.ts";
+import { parseJsonBody } from "./_shared/validation.ts";
+import { TEMPLATE_BUCKET, TEMPLATE_CONFIG_KEY } from "../../shared/constants.ts";
 
 export const handler: Handler = async (event) => {
   try {

@@ -1,7 +1,7 @@
 import type { Handler } from "@netlify/functions";
-import { assertAdmin } from "./_shared/adminAuth";
-import { getSupabaseAdmin } from "./_shared/supabaseAdmin";
-import { badRequest, ok, serverError, unauthorized } from "./_shared/responses";
+import { assertAdmin } from "./_shared/adminAuth.ts";
+import { getSupabaseAdmin } from "./_shared/supabaseAdmin.ts";
+import { badRequest, ok, serverError, unauthorized } from "./_shared/responses.ts";
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") {

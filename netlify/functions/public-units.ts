@@ -1,6 +1,6 @@
 import type { Handler } from "@netlify/functions";
-import { badRequest, ok, serverError } from "./_shared/responses";
-import { getSupabaseAdmin } from "./_shared/supabaseAdmin";
+import { badRequest, ok, serverError } from "./_shared/responses.ts";
+import { getSupabaseAdmin } from "./_shared/supabaseAdmin.ts";
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== "GET") {

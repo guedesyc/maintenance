@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { requireEnv } from "./validation";
+import { requireEnv } from "./validation.ts";
 
 function normalizeSupabaseUrl(value: string): string {
   const trimmed = value.trim();

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { STATUS_OPTIONS } from "./constants";
+import { STATUS_OPTIONS } from "./constants.ts";
 
 export const statusSchema = z.enum(STATUS_OPTIONS);
 

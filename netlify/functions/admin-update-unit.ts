@@ -1,9 +1,9 @@
 import type { Handler } from "@netlify/functions";
-import { normalizeText } from "../../shared/normalizeText";
-import { assertAdmin } from "./_shared/adminAuth";
-import { badRequest, ok, serverError, unauthorized } from "./_shared/responses";
-import { getSupabaseAdmin } from "./_shared/supabaseAdmin";
-import { parseJsonBody } from "./_shared/validation";
+import { normalizeText } from "../../shared/normalizeText.ts";
+import { assertAdmin } from "./_shared/adminAuth.ts";
+import { badRequest, ok, serverError, unauthorized } from "./_shared/responses.ts";
+import { getSupabaseAdmin } from "./_shared/supabaseAdmin.ts";
+import { parseJsonBody } from "./_shared/validation.ts";
 
 export const handler: Handler = async (event) => {
   try {

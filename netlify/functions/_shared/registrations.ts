@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { RegistrationListRow, Status } from "../../../shared/types";
+import type { RegistrationListRow, Status } from "../../../shared/types.ts";
 
 interface CadastroRow {
   id: string;

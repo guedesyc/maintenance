@@ -1,9 +1,9 @@
 import type { Handler } from "@netlify/functions";
-import type { RegistrationPayload } from "../../shared/types";
-import { PUBLIC_ERROR_MESSAGE } from "../../shared/constants";
-import { badRequest, ok, serverError } from "./_shared/responses";
-import { getSupabaseAdmin } from "./_shared/supabaseAdmin";
-import { parseJsonBody } from "./_shared/validation";
+import type { RegistrationPayload } from "../../shared/types.ts";
+import { PUBLIC_ERROR_MESSAGE } from "../../shared/constants.ts";
+import { badRequest, ok, serverError } from "./_shared/responses.ts";
+import { getSupabaseAdmin } from "./_shared/supabaseAdmin.ts";
+import { parseJsonBody } from "./_shared/validation.ts";
 
 export const handler: Handler = async (event) => {
   if (event.httpMethod !== "POST") {
