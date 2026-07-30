@@ -150,6 +150,9 @@ declare
   item_type text;
   item_has_no_patrimonio boolean;
   customer_patrimonio text;
+  inserted_patrimonio_id uuid;
+  inserted_numero_patrimonio integer;
+  inserted_patrimonio_codigo text;
   response_items jsonb := '[]'::jsonb;
 begin
   if requested_request_id is null or requested_unidade_id is null then
@@ -214,18 +217,23 @@ begin
     values (cadastro_row.id, case when item_is_manual then null else current_equipment.id end, item_name, item_is_manual, item_type = 'CLIENTE', customer_patrimonio, item_type, item_has_no_patrimonio, equipment_item->>'status', public.generate_equipment_code(item_name))
     returning * into item_row;
 
+    inserted_patrimonio_id := null;
+    inserted_numero_patrimonio := null;
+    inserted_patrimonio_codigo := null;
+
     if item_type <> 'PROPRIO' and not item_has_no_patrimonio then
       insert into public.patrimonios (cadastro_id, cadastro_item_id, equipamento_id, equipamento_nome, prefixo_patrimonio, numero_patrimonio, patrimonio_codigo, status, sigla_equipamento, equipamento_cliente, tipo_patrimonio)
       values (cadastro_row.id, item_row.id, item_row.equipamento_id, item_row.equipamento_nome, case when item_type = 'COMODATO' then 'CM' else 'CL' end, null, customer_patrimonio, item_row.status, item_row.sigla_equipamento, item_type = 'CLIENTE', item_type)
       returning * into inserted_item;
-    else
-      inserted_item := null;
+      inserted_patrimonio_id := inserted_item.id;
+      inserted_numero_patrimonio := inserted_item.numero_patrimonio;
+      inserted_patrimonio_codigo := inserted_item.patrimonio_codigo;
     end if;
 
     response_items := response_items || jsonb_build_array(jsonb_build_object(
-      'item_id', item_row.id, 'patrimonio_id', inserted_item.id, 'equipamento_id', item_row.equipamento_id,
-      'equipamento_nome', item_row.equipamento_nome, 'numero_patrimonio', inserted_item.numero_patrimonio,
-      'patrimonio_codigo', inserted_item.patrimonio_codigo, 'status', item_row.status,
+      'item_id', item_row.id, 'patrimonio_id', inserted_patrimonio_id, 'equipamento_id', item_row.equipamento_id,
+      'equipamento_nome', item_row.equipamento_nome, 'numero_patrimonio', inserted_numero_patrimonio,
+      'patrimonio_codigo', inserted_patrimonio_codigo, 'status', item_row.status,
       'sigla_equipamento', item_row.sigla_equipamento, 'equipamento_cliente', item_row.equipamento_cliente,
       'tipo_patrimonio', item_type, 'sem_patrimonio', item_has_no_patrimonio
     ));
