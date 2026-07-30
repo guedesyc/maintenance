@@ -194,7 +194,9 @@ export default function AdminRegistrations() {
                     <td className="py-3">{row.sigla_equipamento}</td>
                     <td className="py-3">
                       <div>{row.status}</div>
-                      {row.equipamento_cliente && <div className="text-xs text-stone-500">Cliente</div>}
+                      {row.tipo_patrimonio !== "PROPRIO" && (
+                        <div className="text-xs text-stone-500">{row.tipo_patrimonio === "COMODATO" ? "Comodato" : "Cliente"}</div>
+                      )}
                     </td>
                   </tr>
                 ))

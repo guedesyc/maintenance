@@ -52,6 +52,7 @@ create table if not exists public.cadastro_itens (
   item_manual boolean not null default false,
   equipamento_cliente boolean not null default false,
   patrimonio_cliente text,
+  tipo_patrimonio text,
   status text not null,
   sigla_equipamento text not null,
   created_at timestamptz not null default now(),
@@ -90,6 +91,7 @@ create table if not exists public.patrimonios (
   status text not null,
   sigla_equipamento text not null,
   equipamento_cliente boolean not null default false,
+  tipo_patrimonio text,
   created_at timestamptz not null default now(),
   constraint patrimonios_numero_check check (numero_patrimonio is null or numero_patrimonio between 1 and 999999),
   constraint patrimonios_status_check check (status in ('ATIVO', 'INATIVO'))

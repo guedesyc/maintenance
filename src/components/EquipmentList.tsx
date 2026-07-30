@@ -65,11 +65,12 @@ export default function EquipmentList({
               }))
             }
             onStatusChange={(status) => onUpdate(item.localId, (current) => ({ ...current, status }))}
-            onCustomerEquipmentChange={(customerEquipment) =>
+            onPatrimonioTypeChange={(patrimonioType) =>
               onUpdate(item.localId, (current) => ({
                 ...current,
-                customerEquipment,
-                customerPatrimonio: customerEquipment ? current.customerPatrimonio : "",
+                patrimonioType,
+                customerEquipment: patrimonioType === "CLIENTE",
+                customerPatrimonio: patrimonioType === "PROPRIO" ? "" : current.customerPatrimonio,
               }))
             }
             onCustomerPatrimonioChange={(customerPatrimonio) =>

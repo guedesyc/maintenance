@@ -1,4 +1,4 @@
-import type { EquipmentCatalogItem, RegistrationResult, Status, Unit } from "@shared/types";
+import type { EquipmentCatalogItem, PatrimonioType, RegistrationResult, Status, Unit } from "@shared/types";
 
 export interface EquipmentDraft {
   localId: string;
@@ -8,6 +8,7 @@ export interface EquipmentDraft {
   status: Status;
   customerEquipment: boolean;
   customerPatrimonio: string;
+  patrimonioType: PatrimonioType;
 }
 
 export interface RegistrationFormState {

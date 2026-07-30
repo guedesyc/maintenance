@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import type { EquipmentCatalogItem } from "@shared/types";
+import type { EquipmentCatalogItem, PatrimonioType } from "@shared/types";
 import type { EquipmentDraft } from "@/types/ui";
 import EquipmentAutocomplete from "./EquipmentAutocomplete";
 import StatusSelector from "./StatusSelector";
@@ -15,7 +15,7 @@ interface EquipmentRowProps {
   onTextChange: (value: string) => void;
   onSelect: (equipment: EquipmentCatalogItem) => void;
   onStatusChange: (status: EquipmentDraft["status"]) => void;
-  onCustomerEquipmentChange: (value: boolean) => void;
+  onPatrimonioTypeChange: (value: PatrimonioType) => void;
   onCustomerPatrimonioChange: (value: string) => void;
   onRemove: () => void;
 }
@@ -31,7 +31,7 @@ export default function EquipmentRow({
   onTextChange,
   onSelect,
   onStatusChange,
-  onCustomerEquipmentChange,
+  onPatrimonioTypeChange,
   onCustomerPatrimonioChange,
   onRemove,
 }: EquipmentRowProps) {
@@ -61,25 +61,26 @@ export default function EquipmentRow({
         />
       )}
       <div>
-        <label className="mb-2 block text-sm font-medium text-ink">Equipamento do Cliente</label>
+        <label className="mb-2 block text-sm font-medium text-ink">Tipo de patrimonio</label>
         <select
           className="input-base"
-          value={item.customerEquipment ? "SIM" : "NAO"}
+          value={item.patrimonioType}
           disabled={disabled}
-          onChange={(event) => onCustomerEquipmentChange(event.target.value === "SIM")}
+          onChange={(event) => onPatrimonioTypeChange(event.target.value as PatrimonioType)}
         >
-          <option value="NAO">Nao</option>
-          <option value="SIM">Sim</option>
+          <option value="PROPRIO">Proprio</option>
+          <option value="CLIENTE">Cliente</option>
+          <option value="COMODATO">Comodato</option>
         </select>
       </div>
       <div>
         <label className="mb-2 block text-sm font-medium text-ink">Patrimonio</label>
-        {item.customerEquipment ? (
+        {item.patrimonioType !== "PROPRIO" ? (
           <input
             className="input-base"
             value={item.customerPatrimonio}
             disabled={disabled}
-            placeholder="Digite a numeracao"
+            placeholder={item.patrimonioType === "COMODATO" ? "Numero do comodato" : "Numero do cliente"}
             onChange={(event) => onCustomerPatrimonioChange(event.target.value)}
           />
         ) : (

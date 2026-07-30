@@ -2,6 +2,7 @@ import { z } from "zod";
 import { STATUS_OPTIONS } from "./constants.ts";
 
 export const statusSchema = z.enum(STATUS_OPTIONS);
+export const patrimonioTypeSchema = z.enum(["PROPRIO", "CLIENTE", "COMODATO"]);
 
 export const registrationPayloadSchema = z.object({
   request_id: z.string().uuid(),
@@ -14,6 +15,7 @@ export const registrationPayloadSchema = z.object({
         status: statusSchema,
         equipamento_cliente: z.boolean().default(false),
         patrimonio_cliente: z.string().trim().optional(),
+        tipo_patrimonio: patrimonioTypeSchema.default("PROPRIO"),
       }),
     )
     .min(1),
@@ -27,7 +29,7 @@ export const registrationPayloadSchema = z.object({
       });
     }
 
-    if (item.equipamento_cliente && !item.patrimonio_cliente) {
+    if (item.tipo_patrimonio !== "PROPRIO" && !item.patrimonio_cliente) {
       context.addIssue({
         code: "custom",
         path: ["equipamentos", index, "patrimonio_cliente"],

@@ -1,4 +1,5 @@
 export type Status = "ATIVO" | "INATIVO";
+export type PatrimonioType = "PROPRIO" | "CLIENTE" | "COMODATO";
 
 export interface CatalogItem {
   id: string;
@@ -21,6 +22,7 @@ export interface RegistrationEquipmentInput {
   status: Status;
   equipamento_cliente: boolean;
   patrimonio_cliente?: string;
+  tipo_patrimonio?: PatrimonioType;
 }
 
 export interface RegistrationPayload {
@@ -39,6 +41,7 @@ export interface RegistrationResultItem {
   status: Status;
   sigla_equipamento: string;
   equipamento_cliente: boolean;
+  tipo_patrimonio: PatrimonioType;
 }
 
 export interface RegistrationResult {
@@ -66,6 +69,7 @@ export interface RegistrationListRow {
   sigla_equipamento: string;
   status: Status;
   equipamento_cliente: boolean;
+  tipo_patrimonio: PatrimonioType;
   patrimonio_pendente: boolean;
 }
 

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { RegistrationListRow, Status } from "../../../shared/types.ts";
+import type { PatrimonioType, RegistrationListRow, Status } from "../../../shared/types.ts";
 
 interface CadastroRow {
   id: string;
@@ -20,6 +20,7 @@ interface PatrimonioRow {
   sigla_equipamento: string;
   status: Status;
   equipamento_cliente: boolean;
+  tipo_patrimonio: PatrimonioType | null;
 }
 
 interface CadastroItemRow {
@@ -30,6 +31,7 @@ interface CadastroItemRow {
   sigla_equipamento: string;
   status: Status;
   equipamento_cliente: boolean;
+  tipo_patrimonio: PatrimonioType | null;
 }
 
 interface RegistrationListOptions {
@@ -54,11 +56,11 @@ export async function listAdminRegistrations(
     supabase.from("cadastros").select("id, request_id, unidade_id, unidade_nome, created_at"),
     supabase
       .from("cadastro_itens")
-      .select("id, cadastro_id, equipamento_id, equipamento_nome, sigla_equipamento, status, equipamento_cliente"),
+      .select("id, cadastro_id, equipamento_id, equipamento_nome, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio"),
     supabase
       .from("patrimonios")
       .select(
-        "id, cadastro_id, cadastro_item_id, equipamento_id, equipamento_nome, numero_patrimonio, patrimonio_codigo, sigla_equipamento, status, equipamento_cliente",
+        "id, cadastro_id, cadastro_item_id, equipamento_id, equipamento_nome, numero_patrimonio, patrimonio_codigo, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio",
     ),
     supabase.from("unidades").select("id, responsavel"),
   ]);
@@ -105,7 +107,8 @@ export async function listAdminRegistrations(
         sigla_equipamento: item.sigla_equipamento,
         status: item.status,
         equipamento_cliente: item.equipamento_cliente,
-        patrimonio_pendente: !patrimonio && !item.equipamento_cliente,
+        tipo_patrimonio: item.tipo_patrimonio ?? (item.equipamento_cliente ? "CLIENTE" : "PROPRIO"),
+        patrimonio_pendente: !patrimonio && !item.equipamento_cliente && item.tipo_patrimonio !== "COMODATO",
       };
     })
     .filter((row): row is RegistrationListRow & { numero_patrimonio_text: string } => Boolean(row))

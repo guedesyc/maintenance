@@ -21,6 +21,7 @@ function createEmptyDraft(mode: EquipmentDraft["mode"] = "catalog"): EquipmentDr
     status: "ATIVO",
     customerEquipment: false,
     customerPatrimonio: "",
+    patrimonioType: "PROPRIO",
   };
 }
 
@@ -61,8 +62,8 @@ export default function Home() {
       return;
     }
 
-    if (allItems.some((item) => item.customerEquipment && !item.customerPatrimonio.trim())) {
-      setError("Informe o patrimonio de todos os equipamentos do cliente.");
+    if (allItems.some((item) => item.patrimonioType !== "PROPRIO" && !item.customerPatrimonio.trim())) {
+      setError("Informe o patrimonio do equipamento externo.");
       return;
     }
 
@@ -75,8 +76,9 @@ export default function Home() {
       equipamentos: allItems.map((item) => ({
         ...(item.mode === "catalog" ? { equipamento_id: item.equipment!.id } : { equipamento_nome: item.equipmentText.trim() }),
         status: item.status,
-        equipamento_cliente: item.customerEquipment,
-        patrimonio_cliente: item.customerEquipment ? item.customerPatrimonio.trim() : undefined,
+        equipamento_cliente: item.patrimonioType === "CLIENTE",
+        tipo_patrimonio: item.patrimonioType,
+        patrimonio_cliente: item.patrimonioType !== "PROPRIO" ? item.customerPatrimonio.trim() : undefined,
       })),
     };
 
@@ -155,8 +157,8 @@ export default function Home() {
                 <li>3. Clique em "Enviar cadastro" para concluir. O ADM gerara os patrimonios depois.</li>
               </ol>
               <div className="mt-8 rounded-3xl border border-brand-700/60 bg-white/10 p-4 text-sm text-brand-50">
-                Equipamentos do cliente exigem patrimonio manual no proprio formulario. Os demais ficam pendentes para
-                geracao sequencial no ADM.
+                Equipamentos de Cliente e Comodato exigem patrimonio manual no proprio formulario. Os equipamentos
+                Proprios ficam pendentes para geracao sequencial no ADM.
               </div>
             </div>
           </div>
