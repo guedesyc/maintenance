@@ -4,6 +4,15 @@
 alter table public.cadastro_itens
   add column if not exists tipo_patrimonio text;
 
+alter table public.cadastro_itens
+  add column if not exists sem_patrimonio boolean not null default false;
+
+alter table public.cadastro_itens
+  drop constraint if exists cadastro_itens_cliente_patrimonio_check;
+alter table public.cadastro_itens
+  add constraint cadastro_itens_cliente_patrimonio_check
+  check (equipamento_cliente = false or sem_patrimonio or nullif(trim(patrimonio_cliente), '') is not null);
+
 alter table public.patrimonios
   add column if not exists tipo_patrimonio text;
 
@@ -91,6 +100,7 @@ begin
     left join public.patrimonios p on p.cadastro_item_id = ci.id
     where coalesce(ci.tipo_patrimonio, case when ci.equipamento_cliente then 'CLIENTE' else 'PROPRIO' end) = 'PROPRIO'
       and p.id is null
+      and not coalesce(ci.sem_patrimonio, false)
     order by ci.created_at, ci.id
   loop
     current_prefix := public.resolve_unit_prefix(pending_item.unidade_nome);
@@ -138,6 +148,7 @@ declare
   item_name text;
   item_is_manual boolean;
   item_type text;
+  item_has_no_patrimonio boolean;
   customer_patrimonio text;
   response_items jsonb := '[]'::jsonb;
 begin
@@ -160,7 +171,8 @@ begin
           'equipamento_nome', ci.equipamento_nome, 'numero_patrimonio', p.numero_patrimonio,
           'patrimonio_codigo', p.patrimonio_codigo, 'status', ci.status,
           'sigla_equipamento', ci.sigla_equipamento, 'equipamento_cliente', ci.equipamento_cliente,
-          'tipo_patrimonio', coalesce(ci.tipo_patrimonio, case when ci.equipamento_cliente then 'CLIENTE' else 'PROPRIO' end)
+          'tipo_patrimonio', coalesce(ci.tipo_patrimonio, case when ci.equipamento_cliente then 'CLIENTE' else 'PROPRIO' end),
+          'sem_patrimonio', coalesce(ci.sem_patrimonio, false)
         ) order by ci.created_at, ci.id), '[]'::jsonb)
       ) from public.cadastro_itens ci left join public.patrimonios p on p.cadastro_item_id = ci.id
       where ci.cadastro_id = existing_cadastro.id
@@ -178,9 +190,14 @@ begin
       case when coalesce((equipment_item->>'equipamento_cliente')::boolean, false) then 'CLIENTE' else 'PROPRIO' end));
     if item_type not in ('PROPRIO', 'CLIENTE', 'COMODATO') then raise exception 'Tipo de patrimonio invalido.'; end if;
     customer_patrimonio := nullif(trim(coalesce(equipment_item->>'patrimonio_cliente', '')), '');
+    item_has_no_patrimonio := item_type <> 'PROPRIO' and coalesce((equipment_item->>'sem_patrimonio')::boolean, false);
     if item_type <> 'PROPRIO' then
-      if customer_patrimonio is null then raise exception 'Informe o numero do patrimonio.'; end if;
-      customer_patrimonio := public.format_external_patrimonio(current_unit.nome, customer_patrimonio, case when item_type = 'COMODATO' then 'CM' else 'CL' end);
+      if not item_has_no_patrimonio then
+        if customer_patrimonio is null then raise exception 'Informe o numero do patrimonio.'; end if;
+        customer_patrimonio := public.format_external_patrimonio(current_unit.nome, customer_patrimonio, case when item_type = 'COMODATO' then 'CM' else 'CL' end);
+      else
+        customer_patrimonio := null;
+      end if;
     end if;
     if equipment_item->>'status' not in ('ATIVO', 'INATIVO') then raise exception 'Escolha o status de todos os equipamentos.'; end if;
 
@@ -193,11 +210,11 @@ begin
       if item_name is null then raise exception 'Digite o nome de todos os itens faltantes.'; end if;
     end if;
 
-    insert into public.cadastro_itens (cadastro_id, equipamento_id, equipamento_nome, item_manual, equipamento_cliente, patrimonio_cliente, tipo_patrimonio, status, sigla_equipamento)
-    values (cadastro_row.id, case when item_is_manual then null else current_equipment.id end, item_name, item_is_manual, item_type = 'CLIENTE', customer_patrimonio, item_type, equipment_item->>'status', public.generate_equipment_code(item_name))
+    insert into public.cadastro_itens (cadastro_id, equipamento_id, equipamento_nome, item_manual, equipamento_cliente, patrimonio_cliente, tipo_patrimonio, sem_patrimonio, status, sigla_equipamento)
+    values (cadastro_row.id, case when item_is_manual then null else current_equipment.id end, item_name, item_is_manual, item_type = 'CLIENTE', customer_patrimonio, item_type, item_has_no_patrimonio, equipment_item->>'status', public.generate_equipment_code(item_name))
     returning * into item_row;
 
-    if item_type <> 'PROPRIO' then
+    if item_type <> 'PROPRIO' and not item_has_no_patrimonio then
       insert into public.patrimonios (cadastro_id, cadastro_item_id, equipamento_id, equipamento_nome, prefixo_patrimonio, numero_patrimonio, patrimonio_codigo, status, sigla_equipamento, equipamento_cliente, tipo_patrimonio)
       values (cadastro_row.id, item_row.id, item_row.equipamento_id, item_row.equipamento_nome, case when item_type = 'COMODATO' then 'CM' else 'CL' end, null, customer_patrimonio, item_row.status, item_row.sigla_equipamento, item_type = 'CLIENTE', item_type)
       returning * into inserted_item;
@@ -210,7 +227,7 @@ begin
       'equipamento_nome', item_row.equipamento_nome, 'numero_patrimonio', inserted_item.numero_patrimonio,
       'patrimonio_codigo', inserted_item.patrimonio_codigo, 'status', item_row.status,
       'sigla_equipamento', item_row.sigla_equipamento, 'equipamento_cliente', item_row.equipamento_cliente,
-      'tipo_patrimonio', item_type
+      'tipo_patrimonio', item_type, 'sem_patrimonio', item_has_no_patrimonio
     ));
   end loop;
   return jsonb_build_object('cadastro_id', cadastro_row.id, 'request_id', cadastro_row.request_id, 'unidade_id', cadastro_row.unidade_id, 'unidade_nome', cadastro_row.unidade_nome, 'created_at', cadastro_row.created_at, 'equipamentos', response_items);

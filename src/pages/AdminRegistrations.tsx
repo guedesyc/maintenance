@@ -185,7 +185,11 @@ export default function AdminRegistrations() {
                     <td className="py-3">{row.unidade_nome}</td>
                     <td className="py-3">{row.equipamento_nome}</td>
                     <td className="py-3">
-                      {row.patrimonio_codigo ?? (
+                      {row.sem_patrimonio ? (
+                        <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">
+                          Nao tem patrimonio
+                        </span>
+                      ) : row.patrimonio_codigo ?? (
                         <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
                           Pendente
                         </span>

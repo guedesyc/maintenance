@@ -53,12 +53,13 @@ create table if not exists public.cadastro_itens (
   equipamento_cliente boolean not null default false,
   patrimonio_cliente text,
   tipo_patrimonio text,
+  sem_patrimonio boolean not null default false,
   status text not null,
   sigla_equipamento text not null,
   created_at timestamptz not null default now(),
   constraint cadastro_itens_status_check check (status in ('ATIVO', 'INATIVO')),
   constraint cadastro_itens_catalogo_ou_manual_check check (equipamento_id is not null or item_manual = true),
-  constraint cadastro_itens_cliente_patrimonio_check check (equipamento_cliente = false or nullif(trim(patrimonio_cliente), '') is not null)
+  constraint cadastro_itens_cliente_patrimonio_check check (equipamento_cliente = false or sem_patrimonio or nullif(trim(patrimonio_cliente), '') is not null)
 );
 
 alter table public.cadastro_itens

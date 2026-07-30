@@ -23,6 +23,7 @@ export interface RegistrationEquipmentInput {
   equipamento_cliente: boolean;
   patrimonio_cliente?: string;
   tipo_patrimonio?: PatrimonioType;
+  sem_patrimonio?: boolean;
 }
 
 export interface RegistrationPayload {
@@ -42,6 +43,7 @@ export interface RegistrationResultItem {
   sigla_equipamento: string;
   equipamento_cliente: boolean;
   tipo_patrimonio: PatrimonioType;
+  sem_patrimonio: boolean;
 }
 
 export interface RegistrationResult {
@@ -70,6 +72,7 @@ export interface RegistrationListRow {
   status: Status;
   equipamento_cliente: boolean;
   tipo_patrimonio: PatrimonioType;
+  sem_patrimonio: boolean;
   patrimonio_pendente: boolean;
 }
 

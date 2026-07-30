@@ -16,6 +16,7 @@ export const registrationPayloadSchema = z.object({
         equipamento_cliente: z.boolean().default(false),
         patrimonio_cliente: z.string().trim().optional(),
         tipo_patrimonio: patrimonioTypeSchema.default("PROPRIO"),
+        sem_patrimonio: z.boolean().default(false),
       }),
     )
     .min(1),
@@ -29,7 +30,7 @@ export const registrationPayloadSchema = z.object({
       });
     }
 
-    if (item.tipo_patrimonio !== "PROPRIO" && !item.patrimonio_cliente) {
+    if (item.tipo_patrimonio !== "PROPRIO" && !item.sem_patrimonio && !item.patrimonio_cliente) {
       context.addIssue({
         code: "custom",
         path: ["equipamentos", index, "patrimonio_cliente"],

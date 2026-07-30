@@ -16,6 +16,7 @@ interface EquipmentRowProps {
   onSelect: (equipment: EquipmentCatalogItem) => void;
   onStatusChange: (status: EquipmentDraft["status"]) => void;
   onPatrimonioTypeChange: (value: PatrimonioType) => void;
+  onNoPatrimonioChange: (value: boolean) => void;
   onCustomerPatrimonioChange: (value: string) => void;
   onRemove: () => void;
 }
@@ -32,6 +33,7 @@ export default function EquipmentRow({
   onSelect,
   onStatusChange,
   onPatrimonioTypeChange,
+  onNoPatrimonioChange,
   onCustomerPatrimonioChange,
   onRemove,
 }: EquipmentRowProps) {
@@ -76,13 +78,24 @@ export default function EquipmentRow({
       <div>
         <label className="mb-2 block text-sm font-medium text-ink">Patrimonio</label>
         {item.patrimonioType !== "PROPRIO" ? (
-          <input
-            className="input-base"
-            value={item.customerPatrimonio}
-            disabled={disabled}
-            placeholder={item.patrimonioType === "COMODATO" ? "Numero do comodato" : "Numero do cliente"}
-            onChange={(event) => onCustomerPatrimonioChange(event.target.value)}
-          />
+          <div className="space-y-2">
+            <input
+              className="input-base"
+              value={item.customerPatrimonio}
+              disabled={disabled || item.noPatrimonio}
+              placeholder={item.patrimonioType === "COMODATO" ? "Numero do comodato" : "Numero do cliente"}
+              onChange={(event) => onCustomerPatrimonioChange(event.target.value)}
+            />
+            <label className="flex items-center gap-2 text-xs text-stone-600">
+              <input
+                type="checkbox"
+                checked={item.noPatrimonio}
+                disabled={disabled}
+                onChange={(event) => onNoPatrimonioChange(event.target.checked)}
+              />
+              Nao tem patrimonio
+            </label>
+          </div>
         ) : (
           <div className="input-base flex items-center text-stone-500">ADM gera depois</div>
         )}

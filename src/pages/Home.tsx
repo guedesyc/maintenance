@@ -22,6 +22,7 @@ function createEmptyDraft(mode: EquipmentDraft["mode"] = "catalog"): EquipmentDr
     customerEquipment: false,
     customerPatrimonio: "",
     patrimonioType: "PROPRIO",
+    noPatrimonio: false,
   };
 }
 
@@ -62,7 +63,7 @@ export default function Home() {
       return;
     }
 
-    if (allItems.some((item) => item.patrimonioType !== "PROPRIO" && !item.customerPatrimonio.trim())) {
+    if (allItems.some((item) => item.patrimonioType !== "PROPRIO" && !item.noPatrimonio && !item.customerPatrimonio.trim())) {
       setError("Informe o patrimonio do equipamento externo.");
       return;
     }
@@ -78,7 +79,8 @@ export default function Home() {
         status: item.status,
         equipamento_cliente: item.patrimonioType === "CLIENTE",
         tipo_patrimonio: item.patrimonioType,
-        patrimonio_cliente: item.patrimonioType !== "PROPRIO" ? item.customerPatrimonio.trim() : undefined,
+        sem_patrimonio: item.noPatrimonio,
+        patrimonio_cliente: item.patrimonioType !== "PROPRIO" && !item.noPatrimonio ? item.customerPatrimonio.trim() : undefined,
       })),
     };
 

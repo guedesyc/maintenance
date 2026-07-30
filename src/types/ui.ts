@@ -9,6 +9,7 @@ export interface EquipmentDraft {
   customerEquipment: boolean;
   customerPatrimonio: string;
   patrimonioType: PatrimonioType;
+  noPatrimonio: boolean;
 }
 
 export interface RegistrationFormState {

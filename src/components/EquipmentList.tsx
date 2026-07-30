@@ -70,7 +70,15 @@ export default function EquipmentList({
                 ...current,
                 patrimonioType,
                 customerEquipment: patrimonioType === "CLIENTE",
+                noPatrimonio: patrimonioType === "PROPRIO" ? false : current.noPatrimonio,
                 customerPatrimonio: patrimonioType === "PROPRIO" ? "" : current.customerPatrimonio,
+              }))
+            }
+            onNoPatrimonioChange={(noPatrimonio) =>
+              onUpdate(item.localId, (current) => ({
+                ...current,
+                noPatrimonio,
+                customerPatrimonio: noPatrimonio ? "" : current.customerPatrimonio,
               }))
             }
             onCustomerPatrimonioChange={(customerPatrimonio) =>

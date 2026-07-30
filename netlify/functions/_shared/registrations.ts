@@ -21,6 +21,7 @@ interface PatrimonioRow {
   status: Status;
   equipamento_cliente: boolean;
   tipo_patrimonio: PatrimonioType | null;
+  sem_patrimonio: boolean;
 }
 
 interface CadastroItemRow {
@@ -32,6 +33,7 @@ interface CadastroItemRow {
   status: Status;
   equipamento_cliente: boolean;
   tipo_patrimonio: PatrimonioType | null;
+  sem_patrimonio: boolean;
 }
 
 interface RegistrationListOptions {
@@ -56,11 +58,11 @@ export async function listAdminRegistrations(
     supabase.from("cadastros").select("id, request_id, unidade_id, unidade_nome, created_at"),
     supabase
       .from("cadastro_itens")
-      .select("id, cadastro_id, equipamento_id, equipamento_nome, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio"),
+      .select("id, cadastro_id, equipamento_id, equipamento_nome, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio, sem_patrimonio"),
     supabase
       .from("patrimonios")
       .select(
-        "id, cadastro_id, cadastro_item_id, equipamento_id, equipamento_nome, numero_patrimonio, patrimonio_codigo, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio",
+        "id, cadastro_id, cadastro_item_id, equipamento_id, equipamento_nome, numero_patrimonio, patrimonio_codigo, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio, sem_patrimonio",
     ),
     supabase.from("unidades").select("id, responsavel"),
   ]);
@@ -108,7 +110,8 @@ export async function listAdminRegistrations(
         status: item.status,
         equipamento_cliente: item.equipamento_cliente,
         tipo_patrimonio: item.tipo_patrimonio ?? (item.equipamento_cliente ? "CLIENTE" : "PROPRIO"),
-        patrimonio_pendente: !patrimonio && !item.equipamento_cliente && item.tipo_patrimonio !== "COMODATO",
+        sem_patrimonio: item.sem_patrimonio ?? false,
+        patrimonio_pendente: !patrimonio && !item.sem_patrimonio && !item.equipamento_cliente && item.tipo_patrimonio !== "COMODATO",
       };
     })
     .filter((row): row is RegistrationListRow & { numero_patrimonio_text: string } => Boolean(row))
