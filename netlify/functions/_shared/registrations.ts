@@ -21,7 +21,6 @@ interface PatrimonioRow {
   status: Status;
   equipamento_cliente: boolean;
   tipo_patrimonio: PatrimonioType | null;
-  sem_patrimonio: boolean;
 }
 
 interface CadastroItemRow {
@@ -62,7 +61,7 @@ export async function listAdminRegistrations(
     supabase
       .from("patrimonios")
       .select(
-        "id, cadastro_id, cadastro_item_id, equipamento_id, equipamento_nome, numero_patrimonio, patrimonio_codigo, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio, sem_patrimonio",
+        "id, cadastro_id, cadastro_item_id, equipamento_id, equipamento_nome, numero_patrimonio, patrimonio_codigo, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio",
     ),
     supabase.from("unidades").select("id, responsavel"),
   ]);
