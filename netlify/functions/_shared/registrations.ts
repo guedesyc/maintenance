@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import type { PatrimonioType, RegistrationListRow, Status } from "../../../shared/types.ts";
 
 interface CadastroRow {
@@ -48,33 +48,17 @@ export async function listAdminRegistrations(
   supabase: SupabaseClient,
   options: RegistrationListOptions = {},
 ): Promise<{ rows: RegistrationListRow[]; total: number; unitNames: string[] }> {
-  const [
-    { data: cadastros, error: cadastrosError },
-    { data: itens, error: itensError },
-    { data: patrimonios, error: patrimoniosError },
-    { data: unidades, error: unidadesError },
-  ] = await Promise.all([
-    supabase.from("cadastros").select("id, request_id, unidade_id, unidade_nome, created_at"),
-    supabase
-      .from("cadastro_itens")
-      .select("id, cadastro_id, equipamento_id, equipamento_nome, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio, sem_patrimonio"),
-    supabase
-      .from("patrimonios")
-      .select(
-        "id, cadastro_id, cadastro_item_id, equipamento_id, equipamento_nome, numero_patrimonio, patrimonio_codigo, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio",
-    ),
-    supabase.from("unidades").select("id, responsavel"),
+  const [cadastros, itens, patrimonios, unidades] = await Promise.all([
+    fetchAllRows((from, to) => supabase.from("cadastros").select("id, request_id, unidade_id, unidade_nome, created_at").range(from, to)),
+    fetchAllRows((from, to) => supabase.from("cadastro_itens").select("id, cadastro_id, equipamento_id, equipamento_nome, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio, sem_patrimonio").range(from, to)),
+    fetchAllRows((from, to) => supabase.from("patrimonios").select("id, cadastro_id, cadastro_item_id, equipamento_id, equipamento_nome, numero_patrimonio, patrimonio_codigo, sigla_equipamento, status, equipamento_cliente, tipo_patrimonio").range(from, to)),
+    fetchAllRows((from, to) => supabase.from("unidades").select("id, responsavel").range(from, to)),
   ]);
 
-  if (cadastrosError) throw cadastrosError;
-  if (itensError) throw itensError;
-  if (patrimoniosError) throw patrimoniosError;
-  if (unidadesError) throw unidadesError;
-
-  const cadastrosById = new Map((cadastros ?? []).map((cadastro) => [cadastro.id, cadastro as CadastroRow]));
-  const responsavelByUnitId = new Map((unidades ?? []).map((unidade) => [unidade.id, unidade.responsavel ?? null]));
+  const cadastrosById = new Map(cadastros.map((cadastro) => [cadastro.id, cadastro as CadastroRow]));
+  const responsavelByUnitId = new Map(unidades.map((unidade) => [unidade.id, unidade.responsavel ?? null]));
   const patrimoniosByItemId = new Map(
-    (patrimonios ?? []).map((patrimonio) => {
+    patrimonios.map((patrimonio) => {
       const item = patrimonio as PatrimonioRow;
       return [item.cadastro_item_id, item];
     }),
@@ -82,7 +66,7 @@ export async function listAdminRegistrations(
   const normalizedSearch = options.search?.trim().toLowerCase() ?? "";
   const normalizedStatus = options.status?.trim();
 
-  let rows = (itens ?? [])
+  let rows = itens
     .map((cadastroItem) => {
       const item = cadastroItem as CadastroItemRow;
       const cadastro = cadastrosById.get(item.cadastro_id);
@@ -142,4 +126,18 @@ export async function listAdminRegistrations(
   }
 
   return { rows, total, unitNames };
+}
+
+async function fetchAllRows<T>(
+  fetchPage: (from: number, to: number) => Promise<{ data: T[] | null; error: PostgrestError | null }>,
+): Promise<T[]> {
+  const pageSize = 1000;
+  const rows: T[] = [];
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await fetchPage(from, from + pageSize - 1);
+    if (error) throw error;
+    const page = data ?? [];
+    rows.push(...page);
+    if (page.length < pageSize) return rows;
+  }
 }
