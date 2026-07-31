@@ -1,4 +1,4 @@
-import type { Handler } from "@netlify/functions";
+import type { Handler, HandlerResponse } from "@netlify/functions";
 import { TEMPLATE_BUCKET, TEMPLATE_CONFIG_KEY } from "../../shared/constants.ts";
 import { assertAdmin } from "./_shared/adminAuth.ts";
 import { fillExportWorkbook } from "./_shared/excel.ts";
@@ -6,7 +6,17 @@ import { badRequest, serverError, unauthorized } from "./_shared/responses.ts";
 import { getSupabaseAdmin } from "./_shared/supabaseAdmin.ts";
 import { listAdminRegistrations } from "./_shared/registrations.ts";
 
-export const handler: Handler = async (event) => {
+type ExportFileResult =
+  | ReturnType<typeof unauthorized>
+  | ReturnType<typeof badRequest>
+  | ReturnType<typeof serverError>
+  | {
+      statusCode: 200;
+      headers: Record<string, string>;
+      body: Buffer;
+    };
+
+export async function createExportFile(event: Parameters<Handler>[0]): Promise<ExportFileResult> {
   try {
     assertAdmin(event);
   } catch {
@@ -57,15 +67,24 @@ export const handler: Handler = async (event) => {
 
     return {
       statusCode: 200,
-      isBase64Encoded: true,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "Content-Disposition": `attachment; filename="${filename}"`,
         "x-export-filename": filename,
       },
-      body: buffer.toString("base64"),
+      body: buffer,
     };
   } catch (error) {
     return serverError(error instanceof Error ? error.message : JSON.stringify(error));
   }
+}
+
+export const handler: Handler = async (event): Promise<HandlerResponse> => {
+  const result = await createExportFile(event);
+  if (!Buffer.isBuffer(result.body)) return result as HandlerResponse;
+  return {
+    ...result,
+    isBase64Encoded: true,
+    body: result.body.toString("base64"),
+  } as HandlerResponse;
 };

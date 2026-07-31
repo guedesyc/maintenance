@@ -128,7 +128,19 @@ Deno.serve(async (request) => {
       : contentType.includes("application/json")
         ? JSON.stringify(await request.json())
         : await request.text();
-    const result = await handler(createEvent(request, url, body));
+    const event = createEvent(request, url, body);
+    if (route === "/api/admin-export") {
+      const exportFile = await adminExport.createExportFile(event);
+      const exportHeaders = new Headers(headers);
+      for (const [name, value] of Object.entries((exportFile.headers ?? {}) as Record<string, string>)) {
+        exportHeaders.set(name, value);
+      }
+      if (exportFile.statusCode !== 200 || typeof exportFile.body === "string") {
+        return new Response(String(exportFile.body ?? ""), { status: Number(exportFile.statusCode ?? 500), headers: exportHeaders });
+      }
+      return new Response(exportFile.body, { status: 200, headers: exportHeaders });
+    }
+    const result = await handler(event);
     const responseHeaders = new Headers(headers);
     for (const [name, value] of Object.entries((result.headers ?? {}) as Record<string, string>)) {
       responseHeaders.set(name, name.toLowerCase() === "set-cookie" ? value.replace(/SameSite=Lax/i, "SameSite=None; Secure") : value);
