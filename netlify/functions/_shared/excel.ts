@@ -52,8 +52,9 @@ export function validateTemplateWorkbook(buffer: Buffer): { sheetName: string; h
   }
   const sheet = workbook.Sheets[sheetName];
   const headerRow = (XLSX.utils.sheet_to_json(sheet, { header: 1 })[0] ?? []) as string[];
+  const hasResponsibleColumn = normalizeText(String(headerRow[5] ?? "")) === "responsavel";
   const required = ["Nome", "Identificador", "Cliente", "Categoria", "Status"];
-  const indexes = [0, 2, 4, 5, 7];
+  const indexes = hasResponsibleColumn ? [0, 2, 4, 6, 8] : [0, 2, 4, 5, 7];
 
   required.forEach((expected, index) => {
     const actual = String(headerRow[indexes[index]] ?? "").trim();
@@ -77,13 +78,14 @@ export function buildDefaultTemplateWorkbook() {
       "Identificador",
       "Colaborador",
       "Cliente",
+      "Responsável",
       "Categoria",
       "Equipamento associado",
       "Status",
     ],
   ];
   const sheet = XLSX.utils.aoa_to_sheet(data);
-  sheet["!cols"] = [{ wch: 30 }, { wch: 22 }, { wch: 20 }, { wch: 20 }, { wch: 28 }, { wch: 16 }, { wch: 28 }, { wch: 12 }];
+  sheet["!cols"] = [{ wch: 30 }, { wch: 22 }, { wch: 20 }, { wch: 20 }, { wch: 28 }, { wch: 24 }, { wch: 16 }, { wch: 28 }, { wch: 12 }];
   XLSX.utils.book_append_sheet(workbook, sheet, DEFAULT_TEMPLATE_SHEET);
   return workbook;
 }
@@ -100,18 +102,47 @@ export function fillExportWorkbook(
     throw new Error("Nao foi possivel localizar a aba da planilha modelo.");
   }
 
+  const headerRow = 1;
+  const hasResponsibleColumn = normalizeText(String(sheet[`F${headerRow}`]?.v ?? "")) === "responsavel";
+  if (!hasResponsibleColumn) {
+    insertWorksheetColumn(sheet, 5);
+  }
+  sheet["F1"] = { t: "s", v: "Responsável" };
+
   rows.forEach((row, index) => {
     const currentRow = index + 2;
     sheet[`A${currentRow}`] = { t: "s", v: row.equipamento_nome };
     sheet[`C${currentRow}`] = { t: "s", v: row.patrimonio_codigo ?? "" };
     sheet[`E${currentRow}`] = { t: "s", v: row.unidade_nome };
-    sheet[`F${currentRow}`] = { t: "s", v: row.sigla_equipamento || generateEquipmentCode(row.equipamento_nome) };
-    sheet[`H${currentRow}`] = { t: "s", v: row.status };
+    sheet[`F${currentRow}`] = { t: "s", v: row.responsavel ?? "" };
+    sheet[`G${currentRow}`] = { t: "s", v: row.sigla_equipamento || generateEquipmentCode(row.equipamento_nome) };
+    sheet[`I${currentRow}`] = { t: "s", v: row.status };
   });
 
-  const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1:H2");
+  const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1:I2");
   range.e.r = Math.max(range.e.r, rows.length + 1);
-  range.e.c = Math.max(range.e.c, 7);
+  range.e.c = Math.max(range.e.c, 8);
   sheet["!ref"] = XLSX.utils.encode_range(range);
   return XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }) as Buffer;
+}
+
+function insertWorksheetColumn(sheet: XLSX.WorkSheet, columnIndex: number) {
+  const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1:A1");
+  for (let column = range.e.c; column >= columnIndex; column -= 1) {
+    for (let row = range.s.r; row <= range.e.r; row += 1) {
+      const sourceAddress = XLSX.utils.encode_cell({ r: row, c: column });
+      const targetAddress = XLSX.utils.encode_cell({ r: row, c: column + 1 });
+      if (sheet[sourceAddress]) {
+        sheet[targetAddress] = sheet[sourceAddress];
+        delete sheet[sourceAddress];
+      }
+    }
+  }
+  if (sheet["!cols"]) {
+    const columns = [...sheet["!cols"]];
+    columns.splice(columnIndex, 0, { wch: 24 });
+    sheet["!cols"] = columns;
+  }
+  range.e.c += 1;
+  sheet["!ref"] = XLSX.utils.encode_range(range);
 }
