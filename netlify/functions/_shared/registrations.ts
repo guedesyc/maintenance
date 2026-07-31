@@ -129,7 +129,7 @@ export async function listAdminRegistrations(
 }
 
 async function fetchAllRows<T>(
-  fetchPage: (from: number, to: number) => Promise<{ data: T[] | null; error: PostgrestError | null }>,
+  fetchPage: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: PostgrestError | null }>,
 ): Promise<T[]> {
   const pageSize = 1000;
   const rows: T[] = [];
