@@ -134,7 +134,7 @@ Deno.serve(async (request) => {
       responseHeaders.set(name, name.toLowerCase() === "set-cookie" ? value.replace(/SameSite=Lax/i, "SameSite=None; Secure") : value);
     }
     const responseBody = result.isBase64Encoded
-      ? Uint8Array.from(Buffer.from(String(result.body ?? ""), "base64"))
+      ? Uint8Array.from(Buffer.from(String(result.body ?? "").replace(/\s/g, ""), "base64"))
       : String(result.body ?? "");
     return new Response(responseBody, { status: Number(result.statusCode ?? 200), headers: responseHeaders });
   } catch (error) {

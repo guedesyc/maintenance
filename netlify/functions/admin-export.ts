@@ -30,7 +30,12 @@ export const handler: Handler = async (event) => {
 
     if (configError) throw configError;
 
-    const metadata = (config?.valor ?? null) as { path?: string; filename?: string; sheetName?: string } | null;
+    const rawMetadata = config?.valor ?? null;
+    const metadata = (typeof rawMetadata === "string" ? JSON.parse(rawMetadata) : rawMetadata) as {
+      path?: string;
+      filename?: string;
+      sheetName?: string;
+    } | null;
     let templateBuffer: Buffer | null = null;
     if (metadata?.path) {
       const { data: file, error } = await supabase.storage.from(TEMPLATE_BUCKET).download(metadata.path);
@@ -40,7 +45,7 @@ export const handler: Handler = async (event) => {
 
     const buffer = fillExportWorkbook(
       templateBuffer,
-      rows.filter((row) => !row.patrimonio_pendente),
+      rows,
       metadata as never,
     );
     const stamp = new Date()
