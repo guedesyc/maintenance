@@ -15,6 +15,7 @@ interface SearchableSelectProps<T extends BaseItem> {
   items: T[];
   loading?: boolean;
   error?: string | null;
+  fieldError?: string | null;
   disabled?: boolean;
   noResultsText: string;
   onInputValueChange: (value: string) => void;
@@ -29,6 +30,7 @@ export default function SearchableSelect<T extends BaseItem>({
   items,
   loading,
   error,
+  fieldError,
   disabled,
   noResultsText,
   onInputValueChange,
@@ -54,7 +56,7 @@ export default function SearchableSelect<T extends BaseItem>({
       <div className="relative">
         <input
           id={inputId}
-          className="input-base pr-12"
+          className={`input-base pr-12 ${fieldError ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-200" : ""}`}
           placeholder={placeholder}
           value={inputValue}
           disabled={disabled}
@@ -94,10 +96,12 @@ export default function SearchableSelect<T extends BaseItem>({
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={filteredItems[highlightedIndex]?.id}
+          aria-invalid={Boolean(fieldError)}
         />
         <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-stone-400" />
       </div>
       {value && <p className="mt-2 text-xs text-brand-700">Selecionado: {value.nome}</p>}
+      {fieldError && <p className="mt-2 text-xs font-medium text-red-600">{fieldError}</p>}
       {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
       {open && (
         <div className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-2xl border border-stone-200 bg-white p-2 shadow-soft">

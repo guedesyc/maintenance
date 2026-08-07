@@ -7,6 +7,7 @@ interface EquipmentAutocompleteProps {
   error: string | null;
   value: EquipmentCatalogItem | null;
   inputValue: string;
+  fieldError?: string | null;
   disabled?: boolean;
   onInputValueChange: (value: string) => void;
   onSelect: (item: EquipmentCatalogItem) => void;

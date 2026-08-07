@@ -12,6 +12,7 @@ interface EquipmentListProps {
   options: EquipmentCatalogItem[];
   loading: boolean;
   error: string | null;
+  fieldErrors?: Record<string, { equipment?: string; patrimonio?: string }>;
   disabled?: boolean;
   onAdd: () => void;
   onUpdate: (localId: string, recipe: (item: EquipmentDraft) => EquipmentDraft) => void;
@@ -27,6 +28,7 @@ export default function EquipmentList({
   options,
   loading,
   error,
+  fieldErrors = {},
   disabled,
   onAdd,
   onUpdate,
@@ -48,6 +50,7 @@ export default function EquipmentList({
             options={options}
             loading={loading}
             error={error}
+            fieldErrors={fieldErrors[item.localId]}
             disabled={disabled}
             canRemove={items.length > 1 || index > 0}
             onTextChange={(value) =>

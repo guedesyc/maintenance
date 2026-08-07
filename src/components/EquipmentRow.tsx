@@ -10,6 +10,10 @@ interface EquipmentRowProps {
   options: EquipmentCatalogItem[];
   loading: boolean;
   error: string | null;
+  fieldErrors?: {
+    equipment?: string;
+    patrimonio?: string;
+  };
   disabled?: boolean;
   canRemove: boolean;
   onTextChange: (value: string) => void;
@@ -27,6 +31,7 @@ export default function EquipmentRow({
   options,
   loading,
   error,
+  fieldErrors,
   disabled,
   canRemove,
   onTextChange,
@@ -38,23 +43,31 @@ export default function EquipmentRow({
   onRemove,
 }: EquipmentRowProps) {
   return (
-    <div className="grid gap-4 rounded-3xl border border-stone-200 bg-stone-50/80 p-4 xl:grid-cols-[minmax(0,2fr)_180px_220px_160px]">
+    <div
+      className={`grid gap-4 rounded-3xl border bg-stone-50/80 p-4 xl:grid-cols-[minmax(0,2fr)_180px_220px_160px] ${
+        fieldErrors?.equipment || fieldErrors?.patrimonio ? "border-red-300" : "border-stone-200"
+      }`}
+      data-error-row={fieldErrors?.equipment || fieldErrors?.patrimonio ? "true" : undefined}
+    >
       {manual ? (
         <div>
           <label className="mb-2 block text-sm font-medium text-ink">Item faltante</label>
           <input
-            className="input-base"
+            className={`input-base ${fieldErrors?.equipment ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-200" : ""}`}
             value={item.equipmentText}
             disabled={disabled}
             placeholder="Digite o item"
             onChange={(event) => onTextChange(event.target.value)}
+            aria-invalid={Boolean(fieldErrors?.equipment)}
           />
+          {fieldErrors?.equipment && <p className="mt-2 text-xs font-medium text-red-600">{fieldErrors.equipment}</p>}
         </div>
       ) : (
         <EquipmentAutocomplete
           items={options}
           loading={loading}
           error={error}
+          fieldError={fieldErrors?.equipment}
           value={item.equipment}
           inputValue={item.equipmentText}
           disabled={disabled}
@@ -80,12 +93,14 @@ export default function EquipmentRow({
         {item.patrimonioType !== "PROPRIO" ? (
           <div className="space-y-2">
             <input
-              className="input-base"
+              className={`input-base ${fieldErrors?.patrimonio ? "border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-200" : ""}`}
               value={item.customerPatrimonio}
               disabled={disabled || item.noPatrimonio}
               placeholder={item.patrimonioType === "COMODATO" ? "Numero do comodato" : "Numero do cliente"}
               onChange={(event) => onCustomerPatrimonioChange(event.target.value)}
+              aria-invalid={Boolean(fieldErrors?.patrimonio)}
             />
+            {fieldErrors?.patrimonio && <p className="text-xs font-medium text-red-600">{fieldErrors.patrimonio}</p>}
             <label className="flex items-center gap-2 text-xs text-stone-600">
               <input
                 type="checkbox"

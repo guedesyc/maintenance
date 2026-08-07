@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ShieldCheck } from "lucide-react";
+import { Download, RotateCcw, ShieldCheck } from "lucide-react";
 import { createRegistration } from "@/services/registrationService";
 import { useUnits } from "@/hooks/useUnits";
 import { useEquipmentSearch } from "@/hooks/useEquipmentSearch";
@@ -11,6 +11,35 @@ import UnitAutocomplete from "@/components/UnitAutocomplete";
 import EquipmentList from "@/components/EquipmentList";
 import SuccessModal from "@/components/SuccessModal";
 import AppFooter from "@/components/AppFooter";
+
+const LOCAL_DRAFT_KEY = "maintenance-registration-draft";
+
+interface EquipmentFieldErrors {
+  equipment?: string;
+  patrimonio?: string;
+}
+
+interface FormErrors {
+  unit?: string;
+  items: Record<string, EquipmentFieldErrors>;
+  missingItems: Record<string, EquipmentFieldErrors>;
+}
+
+interface LocalRegistrationDraft {
+  version: 1;
+  savedAt: string;
+  requestId: string;
+  unit: Unit | null;
+  unitText: string;
+  items: EquipmentDraft[];
+  hasMissingItems: boolean;
+  missingItems: EquipmentDraft[];
+}
+
+const emptyFormErrors = (): FormErrors => ({
+  items: {},
+  missingItems: {},
+});
 
 function createEmptyDraft(mode: EquipmentDraft["mode"] = "catalog"): EquipmentDraft {
   return {
@@ -26,6 +55,26 @@ function createEmptyDraft(mode: EquipmentDraft["mode"] = "catalog"): EquipmentDr
   };
 }
 
+function scrollToFirstInvalidField() {
+  window.setTimeout(() => {
+    const field = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+    field?.scrollIntoView({ behavior: "smooth", block: "center" });
+    field?.focus();
+  }, 0);
+}
+
+function downloadJsonFile(data: unknown, filename: string) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function Home() {
   const units = useUnits();
   const equipment = useEquipmentSearch();
@@ -37,43 +86,134 @@ export default function Home() {
   const [requestId, setRequestId] = useState(createRequestId());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrors>(emptyFormErrors);
+  const [hasSavedDraft, setHasSavedDraft] = useState(false);
   const [result, setResult] = useState<Awaited<ReturnType<typeof createRegistration>> | null>(null);
 
   const disabled = loading || Boolean(result);
 
-  const submit = async () => {
+  useEffect(() => {
+    setHasSavedDraft(Boolean(localStorage.getItem(LOCAL_DRAFT_KEY)));
+  }, []);
+
+  useEffect(() => {
+    if (result) return;
+
+    const draft: LocalRegistrationDraft = {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      requestId,
+      unit,
+      unitText,
+      items,
+      hasMissingItems,
+      missingItems,
+    };
+
+    localStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify(draft));
+    setHasSavedDraft(true);
+  }, [hasMissingItems, items, missingItems, requestId, result, unit, unitText]);
+
+  const validateForm = () => {
+    const nextErrors = emptyFormErrors();
+    let valid = true;
+
     if (!unit) {
-      setError("Selecione uma unidade valida.");
-      return;
+      nextErrors.unit = "Selecione uma unidade valida.";
+      valid = false;
     }
+
+    items.forEach((item) => {
+      if (!item.equipment) {
+        nextErrors.items[item.localId] = {
+          ...nextErrors.items[item.localId],
+          equipment: "Selecione um equipamento valido.",
+        };
+        valid = false;
+      }
+    });
+
+    if (hasMissingItems) {
+      missingItems.forEach((item) => {
+        if (!item.equipmentText.trim()) {
+          nextErrors.missingItems[item.localId] = {
+            ...nextErrors.missingItems[item.localId],
+            equipment: "Digite o nome do item faltante.",
+          };
+          valid = false;
+        }
+      });
+    }
+
+    const markPatrimonioError = (item: EquipmentDraft, group: "items" | "missingItems") => {
+      if (item.patrimonioType === "PROPRIO" || item.noPatrimonio || item.customerPatrimonio.trim()) return;
+
+      nextErrors[group][item.localId] = {
+        ...nextErrors[group][item.localId],
+        patrimonio: "Informe o patrimonio ou marque Nao tem patrimonio.",
+      };
+      valid = false;
+    };
+
+    items.forEach((item) => markPatrimonioError(item, "items"));
+    if (hasMissingItems) {
+      missingItems.forEach((item) => markPatrimonioError(item, "missingItems"));
+    }
+
+    setFormErrors(nextErrors);
+    return valid;
+  };
+
+  const clearUnitError = () => {
+    setError(null);
+    setNotice(null);
+    setFormErrors((current) => ({ ...current, unit: undefined }));
+  };
+
+  const clearItemError = (group: "items" | "missingItems", localId: string, field?: keyof EquipmentFieldErrors) => {
+    setError(null);
+    setNotice(null);
+    setFormErrors((current) => {
+      const groupErrors = { ...current[group] };
+      const itemErrors = { ...groupErrors[localId] };
+
+      if (field) {
+        delete itemErrors[field];
+      } else {
+        delete itemErrors.equipment;
+        delete itemErrors.patrimonio;
+      }
+
+      if (itemErrors.equipment || itemErrors.patrimonio) {
+        groupErrors[localId] = itemErrors;
+      } else {
+        delete groupErrors[localId];
+      }
+
+      return {
+        ...current,
+        [group]: groupErrors,
+      };
+    });
+  };
+
+  const submit = async () => {
     const allItems = [...items, ...(hasMissingItems ? missingItems : [])];
 
-    if (allItems.length === 0) {
-      setError("Adicione pelo menos um equipamento.");
-      return;
-    }
-
-    if (items.some((item) => !item.equipment)) {
-      setError("Selecione um equipamento valido em todas as linhas.");
-      return;
-    }
-
-    if (hasMissingItems && missingItems.some((item) => !item.equipmentText.trim())) {
-      setError("Digite o nome de todos os itens faltantes.");
-      return;
-    }
-
-    if (allItems.some((item) => item.patrimonioType !== "PROPRIO" && !item.noPatrimonio && !item.customerPatrimonio.trim())) {
-      setError("Informe o patrimonio do equipamento externo.");
+    if (!validateForm()) {
+      setError("Corrija os campos destacados em vermelho e tente enviar novamente.");
+      scrollToFirstInvalidField();
       return;
     }
 
     setLoading(true);
     setError(null);
+    setNotice(null);
 
     const payload: RegistrationPayload = {
       request_id: requestId,
-      unidade_id: unit.id,
+      unidade_id: unit!.id,
       equipamentos: allItems.map((item) => ({
         ...(item.mode === "catalog" ? { equipamento_id: item.equipment!.id } : { equipamento_nome: item.equipmentText.trim() }),
         status: item.status,
@@ -87,6 +227,8 @@ export default function Home() {
     try {
       const response = await createRegistration(payload);
       setResult(response);
+      localStorage.removeItem(LOCAL_DRAFT_KEY);
+      setHasSavedDraft(false);
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Falha ao finalizar cadastro.");
     } finally {
@@ -102,8 +244,52 @@ export default function Home() {
     setMissingItems([]);
     setResult(null);
     setError(null);
+    setNotice(null);
+    setFormErrors(emptyFormErrors());
     setRequestId(createRequestId());
+    localStorage.removeItem(LOCAL_DRAFT_KEY);
+    setHasSavedDraft(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const saveLocalCopy = () => {
+    const draft: LocalRegistrationDraft = {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      requestId,
+      unit,
+      unitText,
+      items,
+      hasMissingItems,
+      missingItems,
+    };
+    localStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify(draft));
+    setHasSavedDraft(true);
+    setError(null);
+    setNotice("Copia local salva neste navegador e baixada para o computador.");
+    downloadJsonFile(draft, `cadastro-equipamentos-${new Date().toISOString().slice(0, 10)}.json`);
+  };
+
+  const restoreLocalDraft = () => {
+    const storedDraft = localStorage.getItem(LOCAL_DRAFT_KEY);
+    if (!storedDraft) return;
+
+    try {
+      const draft = JSON.parse(storedDraft) as LocalRegistrationDraft;
+      setUnit(draft.unit);
+      setUnitText(draft.unitText);
+      setItems(draft.items.length > 0 ? draft.items : [createEmptyDraft()]);
+      setHasMissingItems(draft.hasMissingItems);
+      setMissingItems(draft.missingItems);
+      setRequestId(draft.requestId || createRequestId());
+      setResult(null);
+      setError(null);
+      setNotice("Rascunho local restaurado.");
+      setFormErrors(emptyFormErrors());
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      setError("Nao foi possivel restaurar o rascunho local.");
+    }
   };
 
   return (
@@ -172,14 +358,17 @@ export default function Home() {
               units={units.data}
               loading={units.loading}
               error={units.error}
+              fieldError={formErrors.unit}
               value={unit}
               inputValue={unitText}
               disabled={disabled}
               onInputValueChange={(value) => {
+                clearUnitError();
                 setUnitText(value);
                 setUnit(unit?.nome === value ? unit : null);
               }}
               onSelect={(selected) => {
+                clearUnitError();
                 setUnit(selected);
                 setUnitText(selected.nome);
               }}
@@ -190,17 +379,20 @@ export default function Home() {
               options={equipment.data}
               loading={equipment.loading}
               error={equipment.error}
+              fieldErrors={formErrors.items}
               disabled={disabled}
               onAdd={() => setItems((current) => [...current, createEmptyDraft()])}
-              onUpdate={(localId, recipe) =>
-                setItems((current) => current.map((item) => (item.localId === localId ? recipe(item) : item)))
-              }
-              onRemove={(localId) =>
+              onUpdate={(localId, recipe) => {
+                clearItemError("items", localId);
+                setItems((current) => current.map((item) => (item.localId === localId ? recipe(item) : item)));
+              }}
+              onRemove={(localId) => {
+                clearItemError("items", localId);
                 setItems((current) => {
                   const next = current.filter((item) => item.localId !== localId);
                   return next.length > 0 ? next : [createEmptyDraft()];
-                })
-              }
+                });
+              }}
             />
 
             <section className="rounded-3xl border border-stone-200 bg-white p-4">
@@ -212,6 +404,11 @@ export default function Home() {
                 onChange={(event) => {
                   const next = event.target.value === "SIM";
                   setHasMissingItems(next);
+                  setError(null);
+                  setNotice(null);
+                  if (!next) {
+                    setFormErrors((current) => ({ ...current, missingItems: {} }));
+                  }
                   setMissingItems((current) => (next && current.length === 0 ? [createEmptyDraft("manual")] : current));
                 }}
               >
@@ -230,23 +427,47 @@ export default function Home() {
                 options={[]}
                 loading={false}
                 error={null}
+                fieldErrors={formErrors.missingItems}
                 disabled={disabled}
                 onAdd={() => setMissingItems((current) => [...current, createEmptyDraft("manual")])}
-                onUpdate={(localId, recipe) =>
-                  setMissingItems((current) => current.map((item) => (item.localId === localId ? recipe(item) : item)))
-                }
-                onRemove={(localId) =>
+                onUpdate={(localId, recipe) => {
+                  clearItemError("missingItems", localId);
+                  setMissingItems((current) => current.map((item) => (item.localId === localId ? recipe(item) : item)));
+                }}
+                onRemove={(localId) => {
+                  clearItemError("missingItems", localId);
                   setMissingItems((current) => {
                     const next = current.filter((item) => item.localId !== localId);
                     return next.length > 0 ? next : [createEmptyDraft("manual")];
-                  })
-                }
+                  });
+                }}
               />
             )}
 
             {error && (
               <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
             )}
+            {notice && (
+              <div className="rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800">
+                {notice}
+              </div>
+            )}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button type="button" className="button-secondary w-full py-3" disabled={disabled} onClick={saveLocalCopy}>
+                <Download className="mr-2 h-4 w-4" />
+                Salvar Copia Local
+              </button>
+              <button
+                type="button"
+                className="button-secondary w-full py-3"
+                disabled={disabled || !hasSavedDraft}
+                onClick={restoreLocalDraft}
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Restaurar rascunho
+              </button>
+            </div>
 
             <button type="button" className="button-primary w-full py-4 text-lg" disabled={loading} onClick={submit}>
               {loading ? "Enviando cadastro..." : "Enviar cadastro"}

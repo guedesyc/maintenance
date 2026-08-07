@@ -7,6 +7,7 @@ interface UnitAutocompleteProps {
   error: string | null;
   value: Unit | null;
   inputValue: string;
+  fieldError?: string | null;
   disabled?: boolean;
   onInputValueChange: (value: string) => void;
   onSelect: (unit: Unit) => void;
@@ -18,6 +19,7 @@ export default function UnitAutocomplete({
   error,
   value,
   inputValue,
+  fieldError,
   disabled,
   onInputValueChange,
   onSelect,
@@ -27,6 +29,7 @@ export default function UnitAutocomplete({
       items={units}
       loading={loading}
       error={error}
+      fieldError={fieldError}
       value={value}
       inputValue={inputValue}
       disabled={disabled}
