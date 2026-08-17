@@ -18,6 +18,12 @@ export const handler: Handler = async (event) => {
     });
 
     if (error) {
+      console.error("Erro na RPC create_registration", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
       return badRequest(PUBLIC_ERROR_MESSAGE);
     }
 
