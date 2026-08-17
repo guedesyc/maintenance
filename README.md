@@ -8,31 +8,37 @@ Aplicacao web completa para cadastro de equipamentos com:
 - upload da planilha modelo de exportacao;
 - exportacao no padrao "Equipamentos Importacao";
 - persistencia em Supabase;
-- hospedagem preparada para Netlify.
+- hospedagem preparada para Netlify, Hostinger ou Supabase Edge Functions.
 
 ## Arquitetura
 
-O projeto foi dividido em tres blocos:
+O projeto possui frontend, handlers de backend reutilizaveis e tres formas de hospedagem da API:
 
 - `src/`: frontend React com rotas publicas e administrativas.
-- `netlify/functions/`: funcoes serverless para login admin, importacoes, listagens e exportacao.
+- `netlify/functions/`: handlers reutilizaveis para cadastro publico, login admin, importacoes, listagens e exportacao.
 - `supabase/schema.sql`: schema completo do banco, funcoes SQL/RPC, indices, restricoes e RLS.
+- `server.ts` e `server.js`: servidor Express para executar o frontend e os handlers na Hostinger.
+- `supabase/functions/api/`: gateway Edge Function que reutiliza os mesmos handlers no Supabase.
+
+A API pode ser executada por Netlify Functions, pelo servidor Express da Hostinger ou pelo gateway do Supabase. O frontend monta as rotas a partir de `VITE_SUPABASE_URL` ou, como fallback, de `VITE_API_BASE_URL`.
 
 ### Como a exclusividade dos patrimonios e garantida
 
-- A tabela `patrimonios` possui `UNIQUE (numero_patrimonio)`.
+- A tabela `patrimonios` possui `UNIQUE (patrimonio_codigo)`.
 - A tabela `patrimonios` possui `CHECK (numero_patrimonio between 1 and 999999)`.
 - A funcao `create_registration(payload jsonb)` roda no banco, dentro de uma unica transacao.
-- Para cada item, a funcao tenta gerar e inserir um numero aleatorio.
-- Se houver colisao, a restricao `UNIQUE` dispara e o loop tenta novamente.
+- Patrimonios proprios sao gerados posteriormente pela funcao `generate_pending_patrimonios()`.
+- A funcao calcula o proximo numero por prefixo de unidade e bloqueia a tabela durante a geracao.
+- Patrimonios de cliente usam o codigo informado, formatado como `CL<unidade>/<numero>`.
 - O commit so acontece quando todos os equipamentos do cadastro forem salvos.
 
 ### Como o sistema evita colisao entre usuarios simultaneos
 
 - O frontend nao reserva patrimonio nenhum.
-- Toda a geracao acontece no Supabase, dentro da funcao `create_registration`.
-- A restricao `UNIQUE` continua sendo a garantia final mesmo com requisicoes simultaneas.
-- Se dois usuarios tentarem usar o mesmo numero no mesmo instante, uma insercao falha e o loop do banco gera outro numero.
+- Patrimonios proprios pendentes sao gerados no Supabase pela funcao administrativa `generate_pending_patrimonios()`.
+- O bloqueio da tabela durante essa geracao evita que duas execucoes calculem o mesmo proximo numero.
+- A restricao `UNIQUE (patrimonio_codigo)` continua sendo a garantia final.
+- Se um patrimonio de cliente ja existir, a requisicao e rejeitada para evitar duplicidade.
 
 ### Como funciona o `request_id`
 
@@ -64,10 +70,10 @@ O projeto foi dividido em tres blocos:
 
 ### Como funciona a autenticacao administrativa
 
-- O login usa `ADMIN_USERNAME` e `ADMIN_PASSWORD`, definidos no ambiente do Netlify.
+- O login usa `ADMIN_USERNAME` e `ADMIN_PASSWORD`, definidos no ambiente do backend.
 - O backend cria um cookie de sessao assinado com `ADMIN_SESSION_SECRET`.
-- Somente as Netlify Functions com sessao valida executam operacoes administrativas.
-- A `SUPABASE_SERVICE_ROLE_KEY` fica restrita ao backend e nunca vai para o frontend.
+- Somente handlers administrativos com sessao valida executam operacoes administrativas.
+- A `SUPABASE_SERVICE_ROLE_KEY` fica restrita ao backend (Netlify, Hostinger ou Edge Function) e nunca vai para o frontend.
 
 ## Tecnologias
 
@@ -104,6 +110,9 @@ shared/
 netlify/
   functions/
     _shared/
+    public-create-registration.ts
+    public-equipment.ts
+    public-units.ts
     admin-login.ts
     admin-logout.ts
     admin-session.ts
@@ -121,6 +130,14 @@ netlify/
 
 supabase/
   schema.sql
+  functions/
+    api/
+      index.ts
+      deno.json
+
+server.ts
+server.js
+.github/workflows/deploy-supabase-function.yml
 ```
 
 ## Variaveis de ambiente
@@ -143,9 +160,15 @@ ADMIN_SESSION_SECRET=
 ### Regras importantes
 
 - `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` podem aparecer no frontend.
-- `SUPABASE_SERVICE_ROLE_KEY` deve existir apenas no servidor Node.
-- `ADMIN_USERNAME`, `ADMIN_PASSWORD` e `ADMIN_SESSION_SECRET` devem existir apenas no servidor Node.
+- `SUPABASE_SERVICE_ROLE_KEY` deve existir apenas no backend (Node, Netlify Functions ou Edge Function).
+- `ADMIN_USERNAME`, `ADMIN_PASSWORD` e `ADMIN_SESSION_SECRET` devem existir apenas no backend.
 - Nao envie credenciais reais para o GitHub.
+
+Quando `VITE_SUPABASE_URL` estiver preenchida, ela tem prioridade para montar a API e `VITE_API_BASE_URL` funciona apenas como fallback. Use a URL principal do projeto, sem `/rest/v1/`:
+
+```env
+VITE_SUPABASE_URL=https://SEU_PROJECT_REF.supabase.co
+```
 
 ### Producao na Hostinger
 
@@ -157,7 +180,7 @@ O projeto pode ser executado como uma aplicacao Node.js na Hostinger usando:
 
 O `server.ts` serve o frontend compilado em `dist` e encaminha as rotas `/api/...` para as funcoes do projeto. Isso substitui o encaminhamento das Netlify Functions e permite executar o sistema integralmente na Hostinger.
 
-Configure todas as variaveis do `.env.example` no ambiente da aplicacao antes do build. As variaveis `VITE_` sao incorporadas ao frontend durante o build; as demais permanecem no servidor.
+Configure as variaveis `VITE_` no ambiente da aplicacao antes do build. Se o backend for executado na Hostinger, configure tambem as variaveis server-side. As variaveis `VITE_` sao incorporadas ao frontend durante o build; as demais permanecem no servidor.
 
 ### Supabase Edge Functions
 
@@ -178,7 +201,9 @@ O endpoint base da API sera:
 https://SEU_PROJECT_REF.supabase.co/functions/v1
 ```
 
-Configure esse endereco na Hostinger como `VITE_API_BASE_URL` e faca um novo build. O frontend acrescenta `/api/...` a esse endereco. As variaveis `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` normalmente ja ficam disponiveis no ambiente das Edge Functions; se o painel solicitar, configure-as como secrets do projeto. A chave `service_role` nunca deve ser colocada em `VITE_API_BASE_URL` ou no frontend.
+Configure esse endereco como `VITE_API_BASE_URL` somente quando `VITE_SUPABASE_URL` nao for usado. O frontend acrescenta `/api/...` a esse endereco. As variaveis `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` normalmente ja ficam disponiveis no ambiente das Edge Functions; se o painel solicitar, configure-as como secrets do projeto. A chave `service_role` nunca deve ser colocada em `VITE_API_BASE_URL` ou no frontend.
+
+O arquivo `.github/workflows/deploy-supabase-function.yml` permite deploy manual pelo GitHub Actions e tambem faz deploy automatico da funcao `api` quando ha push para `main`. Ele usa os secrets `SUPABASE_ACCESS_TOKEN`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` e `ADMIN_SESSION_SECRET`.
 
 Para producao no Netlify, configure o usuario administrativo conforme solicitado:
 
@@ -225,6 +250,15 @@ npm run check
    - Project URL
    - anon key
    - service role key
+
+Os arquivos SQL adicionais sao correcoes ou alteracoes incrementais e nao devem ser executados automaticamente em producao:
+
+- `supabase/add-comodato.sql`: adiciona suporte ao tipo COMODATO.
+- `supabase/add-unit-responsaveis.sql`: adiciona e preenche responsaveis das unidades.
+- `supabase/corrigir-responsaveis-thelma-tayara.sql`: corrige associacoes existentes de responsaveis.
+- `supabase/fix-customer-patrimonio.sql`: atualiza a formatacao e a RPC relacionada a patrimonios de clientes.
+
+Revise o conteudo e confirme o projeto antes de executar qualquer um desses arquivos, pois alguns alteram dados existentes.
 
 ## Storage
 
