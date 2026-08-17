@@ -24,6 +24,11 @@ export const handler: Handler = async (event) => {
         details: error.details,
         hint: error.hint,
       });
+
+      if (error.code === "23505" && error.message.includes("patrimonios_patrimonio_codigo_key")) {
+        return badRequest("O patrimonio informado ja esta cadastrado.");
+      }
+
       return badRequest(PUBLIC_ERROR_MESSAGE);
     }
 
