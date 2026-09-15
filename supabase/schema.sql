@@ -312,7 +312,7 @@ as $$
 declare
   normalized text := public.normalize_text(unit_name);
 begin
-  if normalized like '%ESCOLA%' or normalized like '%CENTRO MUNICIPAL%' or normalized like '%CENTRO INTEGRADO%' or normalized like '%CRECHE%' or normalized like '%COLEGIO%' or normalized like '%E.M.%' or normalized like '%CMEI%' or normalized like '% LP %' or normalized like 'LP %' or normalized like '% LP' then
+  if normalized like '%ESCOLA%' or normalized like '%CENTRO MUNICIPAL%' or normalized like '%CENTRO INTEGRADO%' or normalized like '%CENTRO SOCIAL URBANO%' or normalized like 'CSU%' or normalized like '%CRECHE%' or normalized like '%COLEGIO%' or normalized like '%E.M.%' or normalized like '%CMEI%' or normalized like '% LP %' or normalized like 'LP %' or normalized like '% LP' then
     return 'LP';
   end if;
 
