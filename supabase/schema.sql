@@ -311,8 +311,13 @@ immutable
 as $$
 declare
   normalized text := public.normalize_text(unit_name);
+  unit_code text := (regexp_match(normalized, '^\d+'))[1];
 begin
-  if normalized like 'ESCOLA%' or normalized like '% LP %' or normalized like 'LP %' or normalized like '% LP' then
+  if unit_code in ('1100', '1300', '1600', '1700')
+     or length(unit_code) >= 5
+     or normalized like '% LP %'
+     or normalized like 'LP %'
+     or normalized like '% LP' then
     return 'LP';
   end if;
 

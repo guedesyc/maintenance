@@ -257,6 +257,7 @@ Os arquivos SQL adicionais sao correcoes ou alteracoes incrementais e nao devem 
 - `supabase/add-unit-responsaveis.sql`: adiciona e preenche responsaveis das unidades.
 - `supabase/corrigir-responsaveis-thelma-tayara.sql`: corrige associacoes existentes de responsaveis.
 - `supabase/fix-customer-patrimonio.sql`: atualiza a formatacao e a RPC relacionada a patrimonios de clientes.
+- `supabase/fix-unit-company-prefix.sql`: corrige a identificacao do prefixo LP por codigo numerico da unidade.
 
 Revise o conteudo e confirme o projeto antes de executar qualquer um desses arquivos, pois alguns alteram dados existentes.
 

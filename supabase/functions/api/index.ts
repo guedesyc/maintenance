@@ -123,11 +123,12 @@ Deno.serve(async (request) => {
 
   try {
     const contentType = request.headers.get("content-type") ?? "";
-    const body = request.method === "GET" || request.method === "HEAD"
+    const rawBody = request.method === "GET" || request.method === "HEAD" ? null : await request.text();
+    const body = rawBody === null || rawBody.trim() === ""
       ? null
       : contentType.includes("application/json")
-        ? JSON.stringify(await request.json())
-        : await request.text();
+        ? JSON.stringify(JSON.parse(rawBody))
+        : rawBody;
     const event = createEvent(request, url, body);
     if (route === "/api/admin-export") {
       const exportFile = await adminExport.createExportFile(event);
